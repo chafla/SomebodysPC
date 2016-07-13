@@ -32,7 +32,7 @@ You *can* mix and match if you really want to, for some reason.~~
 
 * Ability to whitelist certain channels for assigning %team.
 
-* Requests can be set to work only through PMs.
+* Team requests can be sent through PMs, and have a selection menu if you share more than one server.
 
 
 
@@ -54,9 +54,11 @@ At the moment, I'm going to go for an early release with the sole functionality 
 
 * Ability for users with a certain bot commanding role to use certain commands.
 
+* Ability to create its own roles.
+
 * Aliases for team names.
 
-* Channel-specific blacklists and/or whitelists for the role assigning (and perhaps all) commands.
+~~* Channel-specific blacklists and/or whitelists for the role assigning (and perhaps all) commands.~~ Done.
 
 * Ability to use different role lists than just the Pokemon Go team list, so as to make the bot useful in other applications.
 
