@@ -7,10 +7,8 @@ from os import path
 from sys import exit
 
 
-
 # TODO: Consider adding welcome message
 # TODO: Consider using pickle to save data
-
 
 
 try:
@@ -77,7 +75,6 @@ Server name: **{0.name}**
 Server ID: **{0.id}**
 Member Count: **{1}**
 '''
-#TODO: Finish this
 
 stats_message = '''
 Team stats for {0}
@@ -103,6 +100,8 @@ async def on_server_join(server):
         json.dump(utils.init_server_datafile, tmp)
     logging.log("INFO", "Joined new server {0} / {1}".format(server.name, server.id))
     # TODO: Add ability for bot to create roles on its own.
+
+    await client.wait_for_message(author=server.member, content=)
 
 
 
@@ -167,17 +166,16 @@ async def on_message(message):
                 await client.send_message(message.channel, base_message)
 
                 server_selection = await utils.get_message(client, message, i, base_message)
-                print(server_selection)
-                try:
-                    server = servers_shared[int(server_selection) - 1]
-                except IndexError:
-                    # TODO: An index error shouldn't be thrown, as the message should have been caught and handled by utils.get_message
+                if server_selection > i:
                     await client.send_message(message.channel, "That number was too large, try %team again.")
                     return
+                else:
+                    server = servers_shared[int(server_selection) - 1]
+
 
             member = discord.utils.get(server.members, id=message.author.id)
 
-        # TODO: Add ability for server owners to possibly set roles to things that aren't V/M/I, but still use default roles
+        # TODO: Add ability to possibly set roles to things that aren't V/M/I, but still use default roles
         # if role in full_list and role in message.server.roles:
 
         # Now, actually handle and process the roles.
@@ -313,10 +311,6 @@ async def on_message(message):
 
         await client.send_message(message.channel, msg)
 
-
-
     # TODO: ADD SERVER SETTINGS CONFIG
-    # TODO: add command that takes the count of users with roles, and prints it out with a server % as well
-
 
 client.run(auth["token"])
