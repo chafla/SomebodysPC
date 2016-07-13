@@ -2,7 +2,6 @@
 import discord
 import json
 import logging
-import re
 import utils
 from os import path
 from sys import exit
@@ -56,6 +55,7 @@ help_message = '''
 `%server_info`: Output a small list of information about the server.
 `%help or %commands`: Show this message again.
 `%pm [required/optional]` (server owner only): Optional is default, and required disables setting roles in the server.
+`%invite`: Generate a link that you can use to add goPC to your own server.
 '''
 
 owner_message = '''
@@ -75,8 +75,16 @@ If you have any questions, problems, compliments, etc., you can find `Luc | ãƒ«ã
 server_info_message = '''
 Server name: **{0.name}**
 Server ID: **{0.id}**
+Member Count: **{1}**
 '''
 #TODO: Finish this
+
+stats_message = '''
+Team stats for {0}
+Users on Team Mystic: {1} ({4}%)
+Users on Team Valor: {2) ({5}%)
+Users on Team Instinct: {3} ({6}%)
+'''
 
 
 client = discord.Client()
@@ -205,11 +213,22 @@ async def on_message(message):
             except discord.HTTPException:
                 await client.send_message(message.channel, "Something went wrong, please try again.")
 
+    # From here on out, don't let commands work in a PM.
+
+    elif message.channel.is_private:
+        return
+
+    # Bot info message, listing things such as the creator and link to github
+
     elif message.content.startswith("%botinfo"):
         await client.send_message(message.channel, bot_info_message)
 
+    # List of commands
+
     elif message.content.startswith("%help") or message.content.startswith("%commands"):
         await client.send_message(message.channel, help_message)
+
+    # Commands to (un)whitelist channels. Can only be run by someone with `Manage Server`.
 
     elif message.content.startswith("%whitelist"):
         if utils.check_perms(message):
@@ -231,6 +250,8 @@ async def on_message(message):
                 json.dump(temp_data, tmp)
                 await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
 
+    # Adjust server PM preferences
+
     elif message.content.startswith('%pm'):
         flag = message.content.split()[1]
         flag_prefs = {
@@ -239,7 +260,7 @@ async def on_message(message):
         }
 
         if message.author is not message.server.owner:
-            await client.send_message(message.channel, "This command is accessible by the server owner only.")
+            await client.send_message(message.channel, "This command is accessible by users with the `Manage Server` permission.")
             return
 
         elif flag not in flag_prefs:
@@ -252,8 +273,47 @@ async def on_message(message):
             json.dump(temp_data, tmp)
         await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag))
 
+    # Small command listing information on the server itself.
+
     elif message.content.startswith('%server_info'):
-        await client.send_message(message.channel, server_info_message)
+        members = (i for i in message.server.members)
+        member_count = sum(1 for _ in members)
+        await client.send_message(message.channel, server_info_message.format(message.server, member_count))
+
+    # Generate an oauth link so people can add it to their own servers.
+
+    elif message.content.startswith('%invite'):
+        oauth_url = discord.utils.oauth_url(client.id, utils.required_perms)
+        await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
+
+    # Team stats in the server.
+
+    elif message.content.startswith('%stats'):
+        role_stats = {
+            "Mystic": 0,
+            "Valor": 0,
+            "Instinct": 0,
+            "total": 0
+        }
+        for member in message.server.members:
+            for role in member.roles:
+                if role.name in role_stats:
+                    role_stats[role.name] += 1
+                    role_stats["total"] += 1
+
+        msg = stats_message.format(
+            message.server.name,
+            role_stats["Mystic"],
+            role_stats["Valor"],
+            role_stats["Instinct"],
+            (role_stats["Mystic"] / role_stats["total"]) * 100,
+            (role_stats["Valor"] / role_stats["total"]) * 100,
+            (role_stats["Instinct"] / role_stats["total"]) * 100
+        )
+
+        await client.send_message(message.channel, msg)
+
+
 
     # TODO: ADD SERVER SETTINGS CONFIG
     # TODO: add command that takes the count of users with roles, and prints it out with a server % as well

@@ -1,15 +1,12 @@
 import json
 import discord
-
-
+import sys
 
 try:
     with open('config.json', 'r+') as json_config_info:
         config = json.load(json_config_info)
 except IOError:
-    print("config.json not found in running directory.")
-    config = None
-    exit(0)
+    sys.exit("config.json not found in running directory.")
 
 sudo_list = config["owner"]
 
@@ -98,3 +95,19 @@ init_server_datafile = {
 
 
 }
+
+# Required perms for bot operation. Used for sending an oauth link.
+
+required_perms = discord.Permissions.none()
+required_perms.read_messages = True
+required_perms.send_messages = True
+required_perms.manage_roles = True
+
+# Default perms for the team role.
+
+team_perms = discord.Permissions.none()
+
+
+
+
+
