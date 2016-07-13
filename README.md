@@ -30,6 +30,10 @@ You *can* mix and match if you really want to, for some reason.~~
 
 **Team aliases are a planned feature, but not a first-release feature.**
 
+* Ability to whitelist certain channels for assigning %team.
+
+* Requests can be set to work only through PMs.
+
 
 
 

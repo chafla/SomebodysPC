@@ -70,3 +70,17 @@ def sudo(message):
     else:
         return False
 
+def check_perms(message):
+    # Only allows execution of command if author has Manage Server permission.
+    for role in message.author.roles:
+        if role.permissions.manage_server:  # May throw errors.
+            return True
+    return False
+
+init_server_datafile = {
+    "server_name": "",
+    "team_ch_wl": [],  # channel ids
+    "pm": "0"
+
+
+}
