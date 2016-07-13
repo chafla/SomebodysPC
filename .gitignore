@@ -90,9 +90,3 @@ ENV/
 
 # pycharm
 .idea/
-
-# possibly sensitive files
-
-*.json
-
-
