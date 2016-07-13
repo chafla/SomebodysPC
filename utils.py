@@ -63,15 +63,10 @@ async def get_message(client, message, i, base_message):
         await get_message(client, message, i, base_message)
 
 
-
-
-
-
-
 # TODO: Make a command to run on first launch that loads things from a db or json files or something
+# Run that during on_ready()
 class Bot:
     pass
-
 
 
 def sudo(message):
@@ -81,12 +76,18 @@ def sudo(message):
     else:
         return False
 
+
 def check_perms(message):
-    # Only allows execution of command if author has Manage Server permission.
-    for role in message.author.roles:
-        if role.permissions.manage_server:  # May throw errors.
-            return True
-    return False
+
+    # Only allows execution of command if author has Manage Server permission, or is owner.
+
+    if message.server.owner.id == message.author.id:
+        return True
+    else:
+        for role in message.author.roles:
+            if role.permissions.manage_server:  # May throw errors.
+                return True
+        return False
 
 init_server_datafile = {
     "server_name": "",

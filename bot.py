@@ -3,8 +3,8 @@ import discord
 import json
 import logging
 import utils
-from os import path
 from sys import exit
+from asyncio import sleep
 
 
 # TODO: Consider adding welcome message
@@ -30,7 +30,7 @@ log.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='goPC.log', encoding='utf-8', mode='w')
 log.addHandler(handler)
 
-team_aliases = {
+team_aliases = {  # Code I'd like to implement at a later point in time
     "Valor": ["Valor", "Team Valor", "Red", "Team Red"],
     "Instinct": ["Instinct", "Team Instinct", "Yellow", "Team Yellow"],
     "Mystic": ["Mystic", "Team Mystic", "Blue", "Team Blue"]
@@ -61,10 +61,8 @@ Hi, thanks for adding me!
 In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting `%team` followed by `Instinct`, `Valor`, or `Mystic` will add a role to a user automatically.
 This should work in a channel, as well as in PMs. If you want to specify a channel that people can set roles in, type `%whitelist` in said channel.
 Otherwise, users can just PM me with %team, and it will work even if I share multiple servers. If you want users to only be able to assign roles via PMs, post `%pm required`.
-~~If you would like me to create roles, you (as in only the server owner) can type `%create_roles in the server, and I will create roles for the server that work with me.~~
-The roles will be basic with no permissions, so you can set them up as you please.
-Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact commands.
-__Note that I do need the `Manage Roles` in order to properly function.__
+If you would like me to create roles, you (as in only the server owner) can type `%create_roles in the server, and I will create empty template roles for the server that work with me.
+Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact parameters.
 
 My code base is available at https://github.com/chafla/SomebodysPC.
 If you have any questions, problems, compliments, etc., you can find `Luc | ルカリオ#5653` (my writer) in the /r/PokemonGO server.
@@ -79,7 +77,7 @@ Member Count: **{1}**
 stats_message = '''
 Team stats for {0}
 Users on Team Mystic: {1} ({4}%)
-Users on Team Valor: {2) ({5}%)
+Users on Team Valor: {2} ({5}%)
 Users on Team Instinct: {3} ({6}%)
 '''
 
@@ -99,9 +97,6 @@ async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
     logging.log("INFO", "Joined new server {0} / {1}".format(server.name, server.id))
-    # TODO: Add ability for bot to create roles on its own.
-
-    await client.wait_for_message(author=server.member, content=)
 
 
 
@@ -189,7 +184,6 @@ async def on_message(message):
                 await client.send_message(message.channel,
                                           "You already have a team role. If you want to switch, message a moderator.")
                 return
-        # Todo: Add a check if the roles just flat out don't exist on the server.
         if (entered_team not in team_list) or (role is None):
             # If the role wasn't found by discord.utils.get() or is a role that we don't want to add:
             await client.send_message(message.channel, "Team doesn't exist. Teams that do are `Mystic`, `Valor`, and `Instinct`.\nBlue is Mystic, red is Valor, and yellow is Instinct.")
@@ -281,8 +275,38 @@ async def on_message(message):
     # Generate an oauth link so people can add it to their own servers.
 
     elif message.content.startswith('%invite'):
-        oauth_url = discord.utils.oauth_url(client.id, utils.required_perms)
+        oauth_url = discord.utils.oauth_url(auth["client_id"], utils.required_perms)
         await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
+
+    # Create roles in server.
+
+    elif message.content.startswith("%create_roles"):
+        if utils.check_perms(message):
+
+            # First, check to make sure the server doesn't already have the roles.
+
+            for role in message.server.roles:
+                if role.name in team_list:
+                    await client.send_message(
+                        message.channel, "One or more roles that I can use already exist on this server. Role creating aborted.")
+                    return
+
+            # That passed, create the roles using blank templates.
+
+            try:
+                await client.send_message(message.channel, "Creating roles...")
+                await client.create_role(message.server, name="Mystic", color=discord.Color.blue(),
+                                         permissions=utils.team_perms)
+                sleep(1)  # Rate limiting purposes
+                await client.create_role(message.server, name="Instinct", color=discord.Color.gold(),
+                                         permissions=utils.team_perms)
+                sleep(1)
+                await client.create_role(message.server, name="Valor", color=discord.Color.red(),
+                                         permissions=utils.team_perms)
+                await client.send_message(message.channel, "Blank roles successfully added.")
+            except discord.Forbidden:
+                await client.send_message(message.channel, "I don't have the `Manage Roles` permission.")
+                return
 
     # Team stats in the server.
 
@@ -304,9 +328,9 @@ async def on_message(message):
             role_stats["Mystic"],
             role_stats["Valor"],
             role_stats["Instinct"],
-            (role_stats["Mystic"] / role_stats["total"]) * 100,
-            (role_stats["Valor"] / role_stats["total"]) * 100,
-            (role_stats["Instinct"] / role_stats["total"]) * 100
+            ((role_stats["Mystic"] / role_stats["total"]) * 100),
+            ((role_stats["Valor"] / role_stats["total"]) * 100),
+            ((role_stats["Instinct"] / role_stats["total"]) * 100),
         )
 
         await client.send_message(message.channel, msg)
