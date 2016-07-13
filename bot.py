@@ -53,6 +53,13 @@ help_message = '''
 `%team [team name]`: Assign yourself to a team.
 '''
 
+owner_message = '''
+Hi, thanks for adding me!
+If you would like me to create roles, you can post %init, and I will create roles for the server that work with me.
+Otherwise, the role names that I use are `Valor`, `Mystic`, and `Instinct` (case sensitive).
+'''
+
+
 
 client = discord.Client()
 
@@ -68,6 +75,10 @@ async def on_ready():
 async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
+    logging.log("INFO", "Joined new server {0}".format(server.id))
+    # TODO: Add ability for bot to create roles on its own.
+
+    await client.send_message(server.owner, owner_message)
 
 
 @client.event
@@ -77,9 +88,6 @@ async def on_message(message):
         return
 
     elif message.content.startswith("%team"):
-        with open("server_data/{0}".format(message.server.id), "r", encoding="utf-8") as tmp:
-            temp_data = json.load(tmp)
-            chan_whitelist = temp_data["team_cl_wl"]
 
             # First things first, determine if it's a PM or not.
             # We need to get the server object that the member wants a role in. If not PM, it's ez.
@@ -87,54 +95,58 @@ async def on_message(message):
         if not message.channel.is_private: # Not a PM.
 
             # Is the channel whitelisted?
+            with open(r"server_data/{0}.json".format(message.server.id), "r+", encoding="utf-8") as tmp:
+                temp_data = json.load(tmp)
+                chan_whitelist = temp_data["team_ch_wl"]
 
             if chan_whitelist is None:  # Nothing in the whitelist, needs to come first
-                server = message.server
+                pass
             elif message.channel.id not in chan_whitelist:
-                if len(temp_data) == 1:
+                if len(chan_whitelist) == 1:
                     await client.send_message(message.channel, "Please put team requests in <#{0}>".format(chan_whitelist[0]))
                     return
-                elif len(temp_data) > 1:  # Grammar for grammar's sake, any more are ignored.
+                elif len(chan_whitelist) > 1:  # Grammar for grammar's sake, any more are ignored.
                     await client.send_message(message.channel,
-                                              "Please put team requests in <#{0}> or : {1}".format(chan_whitelist[0], chan_whitelist[1]))
+                                              "Please put team requests in <#{0}> or <#{1}>".format(chan_whitelist[0], chan_whitelist[1]))
                     return
             else:
-                server = message.server
+                pass
 
             member = message.author
+            server = message.server
 
         else:  # Sent in a private message, so things might get tricky.
             servers_shared = []
             for server in client.servers:
                 for member in server.members:
                     if member.id == message.author.id:
-                        servers_shared.append(member.server.id)
+                        servers_shared.append(member.server)
+            print(servers_shared)
+            if len(servers_shared) == 0:
+                await client.send_message(message.channel, "Something is wrong. We don't appear to share any servers.")
+                return
 
-            if servers_shared == 1:
+            elif len(servers_shared) == 1:
                 server = servers_shared[0]
             else:  # Wew, time for issues
                 base_message = '''
-                Oops, looks like I share more than one server with you.
-                Which server would you like to set your rank in?
-                Reply with the number of the server.
-                '''
+Oops, looks like I share more than one server with you. Which server would you like to set your role in? Reply with the digit of the server.\n
+'''
                 i = 1
-
-                def check(msg, i):
-                    try:
-                        if 0 > int(msg.content) >= i:
-                            return True
-                        else:
-                            return False
-                    except AttributeError or TypeError:  # In case what they return isn't convertible to an int
-                        return False
 
                 for svr in servers_shared:
                     base_message += "{0}: {1.name}\n".format(i, svr)
+                    i += 1
 
-                msg = await client.wait_for_message(author=message.author, check=check)
+                await client.send_message(message.channel, base_message)
 
-                server = servers_shared[int(message.content) - 1]
+                server_selection = await utils.get_message(client, message, i, base_message)
+                print(server_selection)
+                try:
+                    server = servers_shared[int(server_selection) - 1]
+                except IndexError:
+                    await client.send_message(message.channel, "Try %team again.")
+                    return
 
             member = discord.utils.get(server.members, id=message.author.id)
 
@@ -143,7 +155,15 @@ async def on_message(message):
         # if role in full_list and role in message.server.roles:
         entered_team = message.content[6:]
         role = discord.utils.get(server.roles, name=entered_team)
-        if (entered_team not in team_aliases) or (role is None):
+
+        for r in member.roles:
+            if r.name in team_list:
+                # If a role in the user's list of roles matches one of those we're checking
+                await client.send_message(message.channel,
+                                          "You already have a team role. If you want to switch, message a moderator.")
+                return
+
+        if (entered_team not in team_list) or (role is None):
             # If the role wasn't found by discord.utils.get() or is a role that we don't want to add:
             await client.send_message(message.channel, "Team doesn't exist. Teams that do are `Mystic`, `Valor`, and `Instinct`.\nBlue is Mystic, red is Valor, and yellow is Instinct.")
 
@@ -169,26 +189,25 @@ async def on_message(message):
     elif message.content.startswith("%whitelist"):
         if utils.check_perms(message):
 
-            with open("server_data/{0}".format(message.server.id), "r", encoding="utf-8") as tmp:
+            with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
                 temp_data = json.load(tmp)
                 temp_data["team_ch_wl"].append(message.channel.id)
-            with open("server_data/{0}".format(message.server.id), "w", encoding="utf-8") as tmp:
+            with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
                 json.dump(temp_data, tmp)
+            await client.send_message(message.channel, "Channel successfully whitelisted.")
 
     elif message.content.startswith("%unwhitelist"):
         if utils.check_perms(message):
 
-            with open("server_data/{0}".format(message.server.id), "r", encoding="utf-8") as tmp:
+            with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
                 temp_data = json.load(tmp)
                 temp_data["team_ch_wl"].pop(message.channel.id)
-            with open("server_data/{0}".format(message.server.id), "w", encoding="utf-8") as tmp:
+            with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
                 json.dump(temp_data, tmp)
+                await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
 
     # TODO: ADD SERVER SETTINGS CONFIG
-    # TODO: Add a %commands or %help
-    # TODO: Add whitelist command that makes %team only work in certain channels, then save the channel.id to a text file.
 
 
 
-
-
+client.run(auth["token"])

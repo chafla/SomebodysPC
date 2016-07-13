@@ -49,7 +49,21 @@ class ServerPrefs:
     #def add_bot_commander(self, message, client):
 
 
+async def get_message(client, message, i, base_message):
+    msg = await client.wait_for_message(author=message.author, channel=message.channel)
 
+    try:
+        if 0 < int(msg.content) <= i:
+            print(i)
+            return int(msg.content)
+        else:
+            print("a")
+            await client.send_message(message.channel, base_message)
+            await get_message(client, message, i, base_message)
+    except ValueError:  # In case what they return isn't convertible to an int
+        print("b")
+        await client.send_message(message.channel, base_message)
+        await get_message(client, message, i, base_message)
 
 
 
