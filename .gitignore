@@ -92,4 +92,4 @@ ENV/
 .idea/
 
 
-*.json
+server_data/

@@ -104,6 +104,7 @@ required_perms.read_messages = True
 required_perms.send_messages = True
 required_perms.manage_roles = True
 
+
 # Default perms for the team role.
 
 team_perms = discord.Permissions.none()

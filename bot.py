@@ -92,12 +92,12 @@ async def on_ready():
     print(client.user.id)
     print('------')
 
+
 @client.event
 async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
     logging.log("INFO", "Joined new server {0} / {1}".format(server.name, server.id))
-
 
 
 @client.event
@@ -275,8 +275,9 @@ async def on_message(message):
     # Generate an oauth link so people can add it to their own servers.
 
     elif message.content.startswith('%invite'):
-        oauth_url = discord.utils.oauth_url(auth["client_id"], utils.required_perms)
-        await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
+        #oauth_url = discord.utils.oauth_url(auth["client_id"], utils.required_perms)
+        #await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
+        await client.send_message(message.channel, "Temporarily disabled.")
 
     # Create roles in server.
 
