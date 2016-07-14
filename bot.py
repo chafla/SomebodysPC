@@ -247,7 +247,7 @@ async def on_message(message):
 
             with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
                 temp_data = json.load(tmp)
-                temp_data["team_ch_wl"].pop(message.channel.id)
+                temp_data["team_ch_wl"].remove(message.channel.id)
             with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
                 json.dump(temp_data, tmp)
                 await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
