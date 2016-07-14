@@ -85,9 +85,9 @@ Member Count: **{1}**
 
 stats_message = '''
 Team stats for {0}
-Users on Team Mystic: {1} ({4:.2}%)
-Users on Team Valor: {2} ({5:.2}%)
-Users on Team Instinct: {3} ({6:.2}%)
+Users on Team Mystic: {1} ({4:.2f}%)
+Users on Team Valor: {2} ({5:.2f}%)
+Users on Team Instinct: {3} ({6:.2f}%)
 '''
 
 
