@@ -47,14 +47,16 @@ You can find this bot's code at https://github.com/chafla/SomebodysPC.
 '''
 
 help_message = '''
-`%team [team name]`: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
-`%whitelist` (server owner only): Set a specific channel for team setting.
-`%unwhitelist` (server owner only): Re-allow team setting in a channel.
-`%server_info`: Output a small list of information about the server.
-`%help or %commands`: Show this message again.
-`%pm [required/optional]` (server owner only): Optional is default, and required disables setting roles in the server.
-`%invite`: Generate a link that you can use to add goPC to your own server.
-`%create_roles`*: Create three empty team roles that goPC can use to assign.
+*%team [team name]*: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
+*%whitelist**: Set a specific channel for team setting.
+*%unwhitelist**: Re-allow team setting in a channel.
+*%server_info*: Output a small list of information about the server.
+*%help or %commands*: Show this message again.
+*%pm [required/optional]**: Optional is default, and required disables setting roles in the server.
+*%invite*: Generate a link that you can use to add goPC to your own server.
+*%create_roles**: Create three empty team roles that goPC can use to assign.
+*%stats*: List stats on the number of team members, including the percentage of the members on each team.
+Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.
 '''
 
 owner_message = '''
@@ -64,6 +66,7 @@ This should work in a channel, as well as in PMs. If you want to specify a chann
 Otherwise, users can just PM me with %team, and it will work even if I share multiple servers. If you want users to only be able to assign roles via PMs, post `%pm required`.
 If you would like me to create roles, you (as in only the server owner) can type `%create_roles in the server, and I will create empty template roles for the server that work with me.
 Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact parameters.
+**The team roles *need* to be located below goPC in order for them to be assigned, or else it will say it does not have permissions.**
 
 My code base is available at https://github.com/chafla/SomebodysPC.
 If you have any questions, problems, compliments, etc., you can find `Luc | ルカリオ#5653` (my writer) in the /r/PokemonGO server.
@@ -98,7 +101,7 @@ async def on_ready():
 async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
-    logging.log(0, "Joined new server {0} / {1}".format(server.name, server.id))
+    print("Joined {}".format(server.name))
 
 
 @client.event
@@ -123,14 +126,14 @@ async def on_message(message):
             if chan_whitelist is None:  # Nothing in the whitelist, needs to come first
                 pass
             elif pm_prefs == 1:  # Server owner has required roles be set by PMs.
-                await client.send_message(message.channel, "The server owner has required that roles be set by PM")
+                await client.send_message(message.channel, "The server owner has required that roles be set by PM.")
             elif message.channel.id not in chan_whitelist:
                 if len(chan_whitelist) == 1:
-                    await client.send_message(message.channel, "Please put team requests in <#{0}>".format(chan_whitelist[0]))
+                    await client.send_message(message.channel, "Please put team requests in <#{0}>.".format(chan_whitelist[0]))
                     return
                 elif len(chan_whitelist) > 1:  # Grammar for grammar's sake, any more are ignored.
                     await client.send_message(message.channel,
-                                              "Please put team requests in <#{0}> or <#{1}>".format(chan_whitelist[0], chan_whitelist[1]))
+                                              "Please put team requests in <#{0}> or <#{1}>.".format(chan_whitelist[0], chan_whitelist[1]))
                     return
             else:
                 pass
@@ -202,7 +205,7 @@ async def on_message(message):
                 await client.add_roles(member, role)
                 await client.send_message(message.channel, "Successfully added role `{0}`.".format(role.name))
             except discord.Forbidden:
-                await client.send_message(message.channel, "I don't have the `Manage Roles` permission.")
+                await client.send_message(message.channel, "I don't have the `Manage Roles` permission., or the team roles are located above my own.\nTeam roles need to be located beneath my highest role for me to be able to assign roles.")
             except discord.HTTPException:
                 await client.send_message(message.channel, "Something went wrong, please try again.")
 
@@ -295,16 +298,19 @@ async def on_message(message):
 
             # That passed, create the roles using blank templates.
 
+            # !!!
+            # THESE ROLES HAVE TO BE AT LEAST BELOW
+
             try:
                 await client.send_message(message.channel, "Creating roles...")
                 await client.create_role(message.server, name="Mystic", color=discord.Color.blue(),
-                                         permissions=utils.team_perms)
+                                         permissions=utils.team_perms, position=0)
                 sleep(1)  # Rate limiting purposes
                 await client.create_role(message.server, name="Instinct", color=discord.Color.gold(),
-                                         permissions=utils.team_perms)
+                                         permissions=utils.team_perms, position=1)
                 sleep(1)
                 await client.create_role(message.server, name="Valor", color=discord.Color.red(),
-                                         permissions=utils.team_perms)
+                                         permissions=utils.team_perms, position=2)
                 await client.send_message(message.channel, "Blank roles successfully added.")
             except discord.Forbidden:
                 await client.send_message(message.channel, "I don't have the `Manage Roles` permission.")
