@@ -62,10 +62,15 @@ Commands with an asterisk can only be run by the server owner or a user with the
 owner_message = '''
 Hi, thanks for adding me!
 In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting `%team` followed by `Instinct`, `Valor`, or `Mystic` will add a role to a user automatically.
-This should work in a channel, as well as in PMs. If you want to specify a channel that people can set roles in, type `%whitelist` in said channel.
-Otherwise, users can just PM me with %team, and it will work even if I share multiple servers. If you want users to only be able to assign roles via PMs, post `%pm required`.
-If you would like me to create roles, you (as in only the server owner) can type `%create_roles in the server, and I will create empty template roles for the server that work with me.
+
+This should work in a channel within the server, as well as in PMs. If you want to specify a channel that people can set roles in, type `%whitelist` in said channel.
+
+Otherwise, users can just PM me with %team, and it will work even if we share multiple servers. If you want users to only be able to assign roles via PMs, post `%pm required`.
+
+If you would like me to create roles, you (as in only the server owner) can type `%create_roles` in the server, and I will create empty template roles for the server that work with me.
+
 Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact parameters.
+
 **The team roles *need* to be located below goPC in order for them to be assigned, or else it will say it does not have permissions.**
 
 My code base is available at https://github.com/chafla/SomebodysPC.
@@ -80,9 +85,9 @@ Member Count: **{1}**
 
 stats_message = '''
 Team stats for {0}
-Users on Team Mystic: {1} ({4}%)
-Users on Team Valor: {2} ({5}%)
-Users on Team Instinct: {3} ({6}%)
+Users on Team Mystic: {1} ({4:.2}%)
+Users on Team Valor: {2} ({5:.2}%)
+Users on Team Instinct: {3} ({6:.2}%)
 '''
 
 
