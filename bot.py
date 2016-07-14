@@ -102,6 +102,7 @@ async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
     print("Joined {}".format(server.name))
+    await client.send_message(server.owner, owner_message)
 
 
 @client.event

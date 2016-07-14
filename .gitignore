@@ -93,3 +93,4 @@ ENV/
 
 
 server_data/
+*.json
