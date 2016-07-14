@@ -54,6 +54,7 @@ help_message = '''
 `%help or %commands`: Show this message again.
 `%pm [required/optional]` (server owner only): Optional is default, and required disables setting roles in the server.
 `%invite`: Generate a link that you can use to add goPC to your own server.
+`%create_roles`*: Create three empty team roles that goPC can use to assign.
 '''
 
 owner_message = '''
@@ -97,7 +98,7 @@ async def on_ready():
 async def on_server_join(server):
     with open("server_data/{0}.json".format(server.id), "w", encoding="utf-8") as tmp:
         json.dump(utils.init_server_datafile, tmp)
-    logging.log("INFO", "Joined new server {0} / {1}".format(server.name, server.id))
+    logging.log(0, "Joined new server {0} / {1}".format(server.name, server.id))
 
 
 @client.event
