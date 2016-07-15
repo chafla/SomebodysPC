@@ -28,15 +28,25 @@ The server requires roles that correspond to the team name, and are formatted as
 
 # Current commands
 __%team [team name]__: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
+
 __%whitelist\*__: Set a specific channel for team setting.
+
 __%unwhitelist__\*: Re-allow team setting in a channel.
+
 __%server_info__: Output a small list of information about the server.
+
 __%help or %commands__: Show this message again.
+
 __%pm [required/optional]__\*: Optional is default, and required disables setting roles in the server.
+
 __%invite__: Generate a link that you can use to add goPC to your own server.
+
 __%create_roles__\*: Create three empty team roles that goPC can use to assign.
+
 __%stats__: List stats on the number of team members, including the percentage of the members on each team.
+
 **Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
+
 You can find this list by using %help or %oommands in chat.
 
 
