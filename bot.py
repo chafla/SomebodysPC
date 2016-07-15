@@ -352,8 +352,9 @@ async def on_message(message):
 
         await client.send_message(message.channel, msg)
 
-    elif message.content.startswith('%eval') & utils.sudo(message):
-        await client.send_message(message.channel, eval(message.content[6:]))
+    elif message.content.startswith('%eval'):
+        if utils.sudo(message):
+            await client.send_message(message.channel, eval(message.content[6:]))
 
 
         # TODO: ADD SERVER SETTINGS CONFIG
