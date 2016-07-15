@@ -60,18 +60,18 @@ __%stats__: List stats on the number of team members, including the percentage o
 '''
 
 owner_message = '''
-Hi, thanks for adding me!
+Hi, thanks for adding me to your server!
 In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting __%team__ followed by `Instinct`, `Valor`, or `Mystic` will add a role to a user automatically.
 
 This should work in a channel within the server, as well as in PMs. If you want to specify a channel that people can set roles in, type __%whitelist__ in said channel.
 
 Otherwise, users can just PM me with %team, and it will work even if we share multiple servers. If you want users to only be able to assign roles via PMs, post __%pm required__.
 
-If you would like me to create roles, you (as in only the server owner) can type __%create_roles__ in the server, and I will create empty template roles for the server that work with me.
+If you would like me to create roles, someone with the Manage Server permission (or you, the owner) can type __%create_roles__ in the server, and I will create empty template roles for the server that work with me.
 
 Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact parameters.
 
-**The team roles *need* to be located below goPC in order for them to be assigned, or else it will say it does not have permissions.**
+**The team roles *need* to be located below goPC's role in order for them to be able to be assigned, or else it will say it does not have permissions.**
 
 My code base is available at https://github.com/chafla/SomebodysPC.
 If you have any questions, problems, compliments, etc., you can find `Luc | ルカリオ#5653` (my writer) in the /r/PokemonGO server.
