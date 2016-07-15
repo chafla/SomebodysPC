@@ -285,9 +285,8 @@ async def on_message(message):
     # Generate an oauth link so people can add it to their own servers.
 
     elif message.content.startswith('%invite'):
-        #oauth_url = discord.utils.oauth_url(auth["client_id"], utils.required_perms)
-        #await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
-        await client.send_message(message.channel, "Temporarily disabled.")
+        oauth_url = discord.utils.oauth_url(auth["client_id"], utils.required_perms)
+        await client.send_message(message.channel, "Add me to a server by clicking this link: {}".format(oauth_url))
 
     # Create roles in server.
 
