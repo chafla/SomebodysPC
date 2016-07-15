@@ -47,27 +47,27 @@ You can find this bot's code at https://github.com/chafla/SomebodysPC.
 '''
 
 help_message = '''
-*%team [team name]*: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
-*%whitelist**: Set a specific channel for team setting.
-*%unwhitelist**: Re-allow team setting in a channel.
-*%server_info*: Output a small list of information about the server.
-*%help or %commands*: Show this message again.
-*%pm [required/optional]**: Optional is default, and required disables setting roles in the server.
-*%invite*: Generate a link that you can use to add goPC to your own server.
-*%create_roles**: Create three empty team roles that goPC can use to assign.
-*%stats*: List stats on the number of team members, including the percentage of the members on each team.
-Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.
+__%team [team name]__: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
+__%whitelist\*__: Set a specific channel for team setting.
+__%unwhitelist__\*: Re-allow team setting in a channel.
+__%server_info__: Output a small list of information about the server.
+__%help or %commands__: Show this message again.
+__%pm [required/optional]__\*: Optional is default, and required disables setting roles in the server.
+__%invite__: Generate a link that you can use to add goPC to your own server.
+__%create_roles__\*: Create three empty team roles that goPC can use to assign.
+__%stats__: List stats on the number of team members, including the percentage of the members on each team.
+**Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
 '''
 
 owner_message = '''
 Hi, thanks for adding me!
-In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting `%team` followed by `Instinct`, `Valor`, or `Mystic` will add a role to a user automatically.
+In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting __%team__ followed by `Instinct`, `Valor`, or `Mystic` will add a role to a user automatically.
 
-This should work in a channel within the server, as well as in PMs. If you want to specify a channel that people can set roles in, type `%whitelist` in said channel.
+This should work in a channel within the server, as well as in PMs. If you want to specify a channel that people can set roles in, type __%whitelist__ in said channel.
 
-Otherwise, users can just PM me with %team, and it will work even if we share multiple servers. If you want users to only be able to assign roles via PMs, post `%pm required`.
+Otherwise, users can just PM me with %team, and it will work even if we share multiple servers. If you want users to only be able to assign roles via PMs, post __%pm required__.
 
-If you would like me to create roles, you (as in only the server owner) can type `%create_roles` in the server, and I will create empty template roles for the server that work with me.
+If you would like me to create roles, you (as in only the server owner) can type __%create_roles__ in the server, and I will create empty template roles for the server that work with me.
 
 Regardless, in order for me to work, the role names should be `Valor`, `Mystic`, and `Instinct` (case sensitive), and users should call %team with those exact parameters.
 
