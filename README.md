@@ -3,6 +3,8 @@ Multi-server role-assigning bot, similar to Bill's PC from the /r/PokemonGO disc
 The purpose of this bot is to make assigning team-based roles for Pokemon GO servers a breeze, and to provide to other, smaller servers the same sort of functionality that Bill's PC provides with its `%team` command.
 Designed out of demand for a similar sort of solution in smaller servers, where users want a no-fuss solution that adds roles based on Pokemon GO teams. Designed to be light, and shouldn't really interfere with anything. Doesn't log anything, either.
 
+**You can easily add this bot to your server by clicking [this link](https://discordapp.com/oauth2/authorize?client_id=202615577041305600&scope=bot&permissions=268438528).**
+
 Requires at least Python 3.5.1 be installed, as well as the latest version of discord.py.
 
 __Note that this is **not** designed to be an extremely multi-functional bot like BooBot.__ It's designed for a niche, and should work alongside existing bots.

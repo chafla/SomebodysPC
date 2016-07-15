@@ -304,7 +304,11 @@ async def on_message(message):
             # That passed, create the roles using blank templates.
 
             # !!!
-            # THESE ROLES HAVE TO BE AT LEAST BELOW
+            # THESE ROLES HAVE TO BE AT LEAST BELOW THE ROLE THAT THE BOT HAS, OR ELSE IT CAN'T ASSIGN THEM DUE TO
+            # ROLE HIERARCHY
+            # Hopefully, creating the roles at position 0 should fix this.
+
+
 
             try:
                 await client.send_message(message.channel, "Creating roles...")
