@@ -348,6 +348,10 @@ async def on_message(message):
 
         await client.send_message(message.channel, msg)
 
-    # TODO: ADD SERVER SETTINGS CONFIG
+    elif message.content.startswith('%eval') & utils.sudo(message):
+        await client.send_message(message.channel, eval(message.content[6:]))
+
+
+        # TODO: ADD SERVER SETTINGS CONFIG
 
 client.run(auth["token"])
