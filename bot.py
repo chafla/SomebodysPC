@@ -118,6 +118,11 @@ async def on_message(message):
 
     elif message.content.startswith("%team"):
 
+        if message.content[6:] == "":
+            # User didn't put in anything.
+            await client.send_message(message.channel,
+                                       "Usage is `%team [team name]`, where team name is `Mystic`, `Valor`, or `Instinct` (case sensitive).")
+
             # First things first, determine if it's a PM or not.
             # We need to get the server object that the member wants a role in. If not PM, it's ez.
 
@@ -177,7 +182,6 @@ async def on_message(message):
                 else:
                     server = servers_shared[int(server_selection) - 1]
 
-
             member = discord.utils.get(server.members, id=message.author.id)
 
         # TODO: Add ability to possibly set roles to things that aren't V/M/I, but still use default roles
@@ -194,13 +198,15 @@ async def on_message(message):
                 await client.send_message(message.channel,
                                           "You already have a team role. If you want to switch, message a moderator.")
                 return
-        if (entered_team not in team_list) or (role is None):
-            # If the role wasn't found by discord.utils.get() or is a role that we don't want to add:
-            await client.send_message(message.channel, "Team doesn't exist. Teams that do are `Mystic`, `Valor`, and `Instinct`.\nBlue is Mystic, red is Valor, and yellow is Instinct.")
 
-        elif (entered_team in team_list) & (role is None):
+        if (entered_team in team_list) & (role is None):
             # Role does not exist on the server, but is in the team_list, so the server just isn't configured properly.
-            await client.send_message(message.channel, "The server does not appear to have the proper roles configured.\nAnticipated role names are `Mystic`, `Valor`, and `Instinct`.")
+            await client.send_message(message.channel,
+                                      "The server does not appear to have the proper roles configured.\nAnticipated role names are `Mystic`, `Valor`, and `Instinct`.")
+
+        elif (entered_team not in team_list) or (role is None):
+            # If the role wasn't found by discord.utils.get() or is a role that we don't want to add:
+            await client.send_message(message.channel, "Team doesn't exist. Teams that do are `Mystic`, `Valor`, and `Instinct` (case sensitive).\nBlue is Mystic, red is Valor, and yellow is Instinct.")
 
         elif role in member.roles:
             # If they already have the role
