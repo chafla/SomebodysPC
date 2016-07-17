@@ -46,9 +46,6 @@ __%stats__: List stats on the number of team members, including the percentage o
 
 You can find this list by using %help or %oommands in chat.
 
-
-
-
 # Roles Required:
 
 * Manage Roles: Required in order to add roles to members, as well as create the template roles.
@@ -67,3 +64,7 @@ At the moment, I'm going to go for an early release with the sole functionality 
 * Ability to use different role lists than just the Pokemon Go team list, so as to make the bot useful in other applications.
 
 * Perhaps adding some other commands that are a bit more fun. __This isn't really the intention of the bot, though, and I probably won't be adding many fun commands.__ So don't pester me about it, please. :P
+
+# Running an instance
+
+If you're going to be running your own instance of goPC, take the `config_default.json` and `auth_default.json` files, and rename them to `auth.json` and `config.json`, and fill them in with the corresponding data.

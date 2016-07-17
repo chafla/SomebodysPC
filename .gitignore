@@ -93,4 +93,5 @@ ENV/
 
 
 server_data/
-*.json
+config.json
+auth.json
