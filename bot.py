@@ -3,8 +3,13 @@ import discord
 import json
 import logging
 import utils
+import mwclient
 from sys import exit
 from asyncio import sleep
+
+wiki_base = 'bulbapedia.bulbagarden.net'
+wiki_ua = 'Bills PC. /r/PokemonGO Discord Bot.'
+wiki = mwclient.Site(('http', wiki_base), path='/w/', clients_useragent=wiki_ua)
 
 
 # TODO: Consider adding welcome message
@@ -225,6 +230,16 @@ async def on_message(message):
 
     elif message.channel.is_private:
         return
+
+    # Checks the Pokemon GO Wiki for information
+    elif message.content.startswith("%wiki "):
+        content = message.content.replace('%wiki ', '')
+        page = wiki.pages[content].resolve_redirect()
+
+        if not page.exists:
+            await client.send_message(message.channel, "{} :warning: Couldn't find a page on **{}**".format(message.author.mention, content))
+        else:
+            await client.send_message(message.channel, "{} :candy: Found **{}**:\nhttp://{}/wiki/{}_".format(message.author.mention, page.name, wiki_base, page.name.replace(" ", "_")))
 
     # Bot info message, listing things such as the creator and link to github
 
