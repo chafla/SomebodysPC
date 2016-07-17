@@ -239,7 +239,7 @@ async def on_message(message):
         if not page.exists:
             await client.send_message(message.channel, "{} :warning: Couldn't find a page on **{}**".format(message.author.mention, content))
         else:
-            await client.send_message(message.channel, "{} :candy: Found **{}**:\nhttps://{}/wiki/{}_".format(message.author.mention, page.name, wiki_base, page.name.replace(" ", "_")))
+            await client.send_message(message.channel, "{} :candy: Found **{}**:\nhttp://{}/wiki/{}_".format(message.author.mention, page.name, wiki_base, page.name.replace(" ", "_")))
 
     # Bot info message, listing things such as the creator and link to github
 
