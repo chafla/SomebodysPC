@@ -5,8 +5,6 @@ Designed out of demand for a similar sort of solution in smaller servers, where 
 
 **You can easily add this bot to your server by clicking [this link](https://discordapp.com/oauth2/authorize?client_id=202615577041305600&scope=bot&permissions=268438528).**
 
-Requires at least Python 3.5.1 be installed, as well as the latest version of discord.py.
-
 __Note that this is **not** designed to be an extremely multi-functional bot like BooBot.__ It's designed for a niche, and should work alongside existing bots.
 If you want to use this bot's code and launch your own instance, *please please please* don't name it goPC, so as to avoid confusion.
 
@@ -24,6 +22,7 @@ to join Team Valor. The server is required to have roles that correspond to the 
 * Ability to create a set of empty template roles (no permissions) that can then be configured manually, by using %create_roles with the `Manage Server` permission.
 
 # Current commands
+
 __%team [team name]__: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
 
 __%whitelist\*__: Set a specific channel for team setting.
@@ -41,6 +40,8 @@ __%invite__: Generate a link that you can use to add goPC to your own server.
 __%create_roles__\*: Create three empty team roles that goPC can use to assign.
 
 __%stats__: List stats on the number of team members, including the percentage of the members on each team.
+
+__%wiki [page]__: Find a page on bulbapedia.
 
 **Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
 
@@ -68,3 +69,11 @@ At the moment, I'm going to go for an early release with the sole functionality 
 # Running an instance
 
 If you're going to be running your own instance of goPC, take the `config_default.json` and `auth_default.json` files, and rename them to `auth.json` and `config.json`, and fill them in with the corresponding data.
+
+goPC uses the `await` syntax, and as such python 3.5 or greater is required.
+
+Also, the following packages need to be installed:
+
+* discord.py
+
+* mwclient

@@ -61,6 +61,7 @@ __%pm [required/optional]__\*: Optional is default, and required disables settin
 __%invite__: Generate a link that you can use to add goPC to your own server.
 __%create_roles__\*: Create three empty team roles that goPC can use to assign.
 __%stats__: List stats on the number of team members, including the percentage of the members on each team.
+__%wiki [page]__: Find a page on bulbapedia.
 **Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
 '''
 
@@ -232,6 +233,7 @@ async def on_message(message):
         return
 
     # Checks the Pokemon GO Wiki for information
+
     elif message.content.startswith("%wiki "):
         content = message.content.replace('%wiki ', '')
         page = wiki.pages[content].resolve_redirect()
@@ -328,8 +330,6 @@ async def on_message(message):
             # THESE ROLES HAVE TO BE AT LEAST BELOW THE ROLE THAT THE BOT HAS, OR ELSE IT CAN'T ASSIGN THEM DUE TO
             # ROLE HIERARCHY
             # Hopefully, creating the roles at position 0 should fix this.
-
-
 
             try:
                 await client.send_message(message.channel, "Creating roles...")
