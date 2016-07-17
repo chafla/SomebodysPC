@@ -9,7 +9,7 @@ from asyncio import sleep
 
 wiki_base = 'bulbapedia.bulbagarden.net'
 wiki_ua = 'Bills PC. /r/PokemonGO Discord Bot.'
-wiki = mwclient.Site(wiki_base, path='/w/', clients_useragent=wiki_ua)
+wiki = mwclient.Site(('http', wiki_base), path='/w/', clients_useragent=wiki_ua)
 
 
 # TODO: Consider adding welcome message
