@@ -54,7 +54,8 @@ bot = utils.Bot(client)
 async def on_ready():
     bot.initializing = True  # TODO: Create exceptions on message if bot.initializing == True
     print("Initializing server data...")
-    bot.servers = utils.init(client)  # Load the server datafiles, create objects. I frankly don't know how long this will take.
+    bot.init(client)  # Load the server datafiles, create objects. I frankly don't know how long this will take.
+    #bot.update_datafiles(client)
     print("Done.")
     bot.initializing = False
     print('Logged in as')
@@ -159,7 +160,7 @@ async def on_message(message):
                 await client.send_message(message.channel,
                                           "You already have a team role. If you want to switch, message a moderator.")
                 return
-
+        # TODO: Make this check based on whether or not the server has used default roles
         if (server_obj.check_role(entered_team)) & (role is None):
             # Role does not exist on the server, but is in the team_list, so the server just isn't configured properly.
             await client.send_message(message.channel,
