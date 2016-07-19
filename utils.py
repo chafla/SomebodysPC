@@ -129,6 +129,22 @@ class Server:
             self.export_to_file()
             return role
 
+    async def check_whitelist(self, message):
+        """
+        Check against the channel whitelist to see if the command should be allowed in this channel.
+        :param message: message object from context
+        :return: None if the command goes through, otherwise a message detailing why it didn't.
+        """
+        if self.channel_whitelist is None or message.channel.id in self.channel_whitelist:
+            # Command does go through
+            return None
+        elif message.channel.id not in self.channel_whitelist:
+            # Command doesn't go through, return a message on where that should be allowed.
+            if len(self.channel_whitelist) == 1:
+                return "Please put team requests in <#{0}>.".format(self.channel_whitelist[0])
+            elif len(self.channel_whitelist) > 1:  # Grammar for grammar's sake, any more are ignored.
+                return "Please put team requests in <#{0}> or <#{1}>.".format(self.channel_whitelist[0], self.channel_whitelist[1])
+
     def get_role_from_server(self, role_name, message, client):
         # TODO: FINISH THIS
         """
@@ -162,16 +178,6 @@ class Server:
             if role_name == user_input:
                 return True
         return False
-
-
-
-
-
-
-
-
-
-
 
     # TODO: Command to create a server when it already exists
 

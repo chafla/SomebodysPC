@@ -73,6 +73,8 @@ async def on_server_join(server):
 @client.event
 async def on_message(message):
 
+    # TODO: Make a call for the server object here
+
     if message.author.id == client.user.id:
         return
 
@@ -97,24 +99,15 @@ async def on_message(message):
 
             # Run checks to see if the message should go through or not
 
-            whitelist = server_obj.whitelist
-            pm_prefs = server_obj.pm_config
+            whitelist = server_obj.check_whitelist(message)
+            pm_prefs = int(server_obj.pm_config)
 
-            if whitelist is None:  # Nothing in the whitelist, needs to come first
-                pass
-            elif pm_prefs == 1:  # Server owner has required roles be set by PMs.
+            if pm_prefs == 1:  # Server owner has required roles be set by PMs.
                 await client.send_message(message.channel, "The server owner has required that roles be set by PM.")
                 return
-            elif message.channel.id not in whitelist:  # Whitelist exists, and this channel's not in it
-                if len(whitelist) == 1:
-                    await client.send_message(message.channel, "Please put team requests in <#{0}>.".format(whitelist[0]))
-                    return
-                elif len(whitelist) > 1:  # Grammar for grammar's sake, any more are ignored.
-                    await client.send_message(message.channel,
-                                              "Please put team requests in <#{0}> or <#{1}>.".format(whitelist[0], whitelist[1]))
-                    return
-            else:
-                pass
+            elif whitelist is not None:  # The channel was not in the whitelist.
+                await client.send_message(message.channel, whitelist)
+                return
 
             member = message.author
             server = message.server
@@ -325,6 +318,10 @@ async def on_message(message):
     # Team stats in the server.
 
     elif message.content.startswith('%stats'):
+
+
+        # TODO: Make this work with the new server team list
+
         role_stats = {
             "Mystic": 0,
             "Valor": 0,
@@ -342,7 +339,7 @@ async def on_message(message):
             role_stats["Mystic"],
             role_stats["Valor"],
             role_stats["Instinct"],
-            ((role_stats["Mystic"] / role_stats["total"]) * 100),
+            ((role_stats["Mystic"] / role_stats["total"]) * 100), # TODO: This throws a divide by zero error
             ((role_stats["Valor"] / role_stats["total"]) * 100),
             ((role_stats["Instinct"] / role_stats["total"]) * 100),
         )
