@@ -98,6 +98,8 @@ class Server:
     def init_from_file(self, datafile_path):
 
         # TODO: RE-INITIALIZE ALL EXISTING SERVER OBJECTS WITH THE NEW KEYS
+
+        # TODO: Consider recreating files if they disappear - should really be only needed on manual delete when testing
         # Note: if we do it when the server object is initialized, then we run a risk of it not existing then.
 
         with open(datafile_path, "r", encoding="utf-8") as tmp:
@@ -278,9 +280,9 @@ class Server:
         # As a result, we need to check the existing roles on the server first, to see if it is indeed just pogo roles.
 
         # This is probably a hack that can be eliminated by just removing the base roles in the first place, but ehh.
-
+        '''
         role_list = self.roles
-
+        # TODO: This hits an error when it's passed a non-existent server object for some reason?
         if self._exists_default_roles():
             # If the pogo roles (as in the objects) actually exist on the server, then don't filter them out.
             # If they don't, then don't let it show them in the list.
@@ -292,6 +294,9 @@ class Server:
                 for role.name in self.obj.roles:
                     if role not in self.roles or role in self.base_roles:
                         role_list.remove(role)
+        '''
+
+        role_list = self.roles
 
         base_message = "roles that can be added with %team are "
         if len(role_list) == 1:  # If there's only one role addable, make it mostly clean.

@@ -147,7 +147,11 @@ async def on_message(message):
                     # TODO: Fix possibility of IndexError
 
             member = discord.utils.get(server.members, id=message.author.id)
-            server_obj = bot.servers[server.id]
+            try:
+                server_obj = bot.servers[server.id]
+            except KeyError:  # Datafile is missing or something, it's not there.
+                await client.send_message(message.channel, "The server datafile appears to be nonexistent for some reason.")
+                return
 
         # Now, actually handle and process the roles.
 
