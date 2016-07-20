@@ -1,7 +1,7 @@
 import json
 import discord
 import sys
-from os import listdir
+from os import listdir, remove
 
 # TODO: Run this at start of program, after on ready but make sure there's a flag that doesn't let commands be handled while it's still initializing, possibly in Bot
 
@@ -41,11 +41,21 @@ class Bot:
             server = Server(client)
 
             # Pull the file ID from the name, so that we can be sure
+            try:
+                server.init_from_file("server_data/" + file)  # Probably a neater way of doing this
+            except KeyError:  # If there's a discrepancy, update the file otg
+                server.update_data_files(client, "server_data/" + file, file)
 
-            server.init_from_file("server_data/" + file)  # Probably a neater way of doing this
             self.servers[server.id] = server
 
-    def update_datafiles(self, client):
+    def add_new_server(self, client, server):
+        server_obj = Server(client)
+        server_obj.init_from_join(server)
+        self.servers[server.id] = server_obj
+        return
+
+    @staticmethod
+    def update_datafiles(client):
         datafiles = listdir("server_data/")
         for file in datafiles:
             server = Server(client)
@@ -53,7 +63,6 @@ class Bot:
             # Pull the file ID from the name, so that we can be sure
 
             server.update_data_files(client, "server_data/" + file, file)  # Probably a neater way of doing this
-            print("Updated data files.")
 
 
 class Server:
@@ -76,6 +85,7 @@ class Server:
         self.roles = []
         self.channel_whitelist = []
         self.pm_config = ""
+        self.exclusive = ""
         self.obj = discord.utils.get(client.servers, id=self.id)
 
     # Init on launch, if file has been stored.
@@ -92,6 +102,7 @@ class Server:
         self.id = data["server_id"]
         self.name = data["server_name"]  # Server name was blank in old code, let's fix that
         self.roles = data["custom_roles"]
+        self.exclusive = data["exclusive"]
 
     def update_data_files(self, client, datafile_path, server_id):
         # Utility to update all existing datafiles in case I add new stuff to dicts.
@@ -99,15 +110,21 @@ class Server:
         with open(datafile_path, "r", encoding="utf-8") as tmp:
             data = json.load(tmp)
         try:
-            test_var = data["custom_roles"], data["server_id"]
+            # Add the new keys here
+            test_var = data["custom_roles"], data["server_id"], data["exclusive"]
         except KeyError:
             with open(datafile_path, "r", encoding="utf-8") as tmp:
                 data = json.load(tmp)
             server = discord.utils.get(client.servers, id=server_id[:-5])
 
-            if server is None:  # This means that we don't belong to the server for some reason. Throws AttributeErrors.
-                self.name = "LEFT"
-                belongs = False
+            if server is None:
+                # This means that we don't belong to the server for some reason. Throws AttributeErrors.
+                # Just reformat the file so that we don't get errors.
+                self.name = ""
+                self.id = server_id[:-5]
+                self.roles = []
+                self.exclusive = "0"
+                self.export_to_file()
                 return
             else:
                 self.name = server.name
@@ -118,28 +135,36 @@ class Server:
                 # This one already exists, but is empty. We really don't need to worry ourselves with it too much.
 
                 # These ones don't exist in the new json files, so we need to add them.
-                # We have to check to see if the server contains the default roles already, and if so, add them.
+                # We have to check to see if the server contains the default roles already, and if not, add them.
+                self.exclusive = "0"
                 for role in server.roles:
-                    if role.name in ["Valor", "Mystic", "Instinct"]:
+                    if role.name in ["Valor", "Mystic", "Instinct"]:  # TODO: Consider the fact that this might have some impact on non-pokemon go servers. Possibly add check for roles that do actually exist on the server.
                         self.roles.append(role.name)
 
-                print("Updated server datafiles for {}".format(server.name))
+                print("Updated server datafiles for {0.name}".format(server))
 
                 self.export_to_file()
 
     def init_from_join(self, server):
         # Creation of object on joining server through oauth.
+        # Note that the first time through, it creates an empty object that should be popularized on next boot.
         # Kinda roundabout, probably a nicer way to do this
         self.id = server.id
         self.name = server.name
         self.roles = []
         self.channel_whitelist = []
         self.pm_config = "0"
+        self.exclusive = "0"
+        self.obj = server
+        output = init_server_datafile
+        output["server_id"] = server.id
+        output["server_name"] = server.name
+        # TODO: This creates roles with the init datafile, but that doesn't have server ID.
         with open("server_data/{0}.json".format(self.id), "w", encoding="utf-8") as tmp:
-            json.dump(init_server_datafile, tmp)
+            json.dump(output, tmp)
 
     def export_to_file(self):
-        # Take the current server object as it is and
+        # Take the current server object as it is and push it to a .json file.
 
         # TODO: This might result in problems if multiple people call it at once, but we need it to export.
 
@@ -148,14 +173,16 @@ class Server:
 
         data["server_id"] = self.id
         data["name"] = self.name
-        data["custom_roles"] = self.roles  # List of IDs
+        data["custom_roles"] = self.roles  # List of names
         data["team_ch_wl"] = self.channel_whitelist
         data["pm"] = self.pm_config
+        data["exclusive"] = self.exclusive
 
         with open("server_data/{0}.json".format(self.id), "w", encoding="utf-8") as tmp:
             json.dump(data, tmp)
 
     def add_custom_role(self, message, external_role=None):
+        # TODO: Occasionally omits the role from the role list
         # initialize a custom role that can be added through %team. Server dependent.
         # If external_role is not None, then it's being called by something else, and we're just passing in the names we know.
         if external_role is not None:
@@ -212,20 +239,77 @@ class Server:
         self.add_custom_role(message, "Instinct")
         return
 
+    def check_default_roles(self):
+        # Check to see if the only roles that exist are the default roles.
+        for role in self.roles:
+            if role in ["Mystic", "Valor", "Instinct"]:
+                continue
+            else:
+                return False
+        else:
+            return True
+
+    def _exists_default_roles(self):
+        for role in self.obj.roles:
+            if role.name in self.base_roles:  # Just assume that if one role exists, then they all do.
+                return True
+        else:
+            return False
+
     def check_role(self, user_input):
-        # Probably a more efficient way to do this
+        """
+        A simple check to see if the user's message was in the role list.
+        :param user_input: Message content.
+        :return: True if role is in the team list, otherwise False.
+        """
         for role_name in self.roles:
             if role_name == user_input:
                 return True
         return False
 
+    def list_roles(self):
+        # TODO: Consider removing this first check because the default role list already doesn't contain the pogo roles.
+        # Compile roles into a fancy, readable format.
+
+        # First, check to see if the server only has the default roles added.
+        # If so, we can probably assume that it's either not been set up yet, or that it's only running pogo roles.
+        # As a result, we need to check the existing roles on the server first, to see if it is indeed just pogo roles.
+
+        # This is probably a hack that can be eliminated by just removing the base roles in the first place, but ehh.
+
+        role_list = self.roles
+
+        if self._exists_default_roles():
+            # If the pogo roles (as in the objects) actually exist on the server, then don't filter them out.
+            # If they don't, then don't let it show them in the list.
+            i = 0
+            for role in self.obj.roles:
+                if role.name in self.base_roles:
+                    i += 1
+            if i < 3:  # They do exist on the server, or at least in limited capacity. Just ignore it
+                for role.name in self.obj.roles:
+                    if role not in self.roles or role in self.base_roles:
+                        role_list.remove(role)
+
+        base_message = "Roles that can be added with %team are "
+        if len(role_list) == 1:  # If there's only one role addable, make it mostly clean.
+            base_message += "`{}`."
+        else:
+            for role_name in role_list[:-1]:
+                base_message += "`{}`, ".format(role_name)
+            else:  # For the last object
+                base_message += "and `{}`.".format(role_list[-1])
+        return base_message
+
     # TODO: Command to create a server when it already exists
+    # TODO: Determine what I meant when I wrote the above TODO
+
+# Function used to check the message received for an int.
 
 async def get_message(client, message, i, base_message):
     msg = await client.wait_for_message(author=message.author, channel=message.channel)
     try:
         if 0 < int(msg.content) <= i:
-            print(i)
             return int(msg.content)
         else:
             await client.send_message(message.channel, base_message)
@@ -245,7 +329,8 @@ def check_perms(message):
         for role in message.author.roles:
             if role.permissions.manage_server:  # May throw errors.
                 return True
-        return False
+        else:
+            return False
 
 init_server_datafile = {
     "server_name": "",  # Server name, ofc subject to change.
@@ -257,6 +342,7 @@ init_server_datafile = {
     # track of roles. There seems to be a bit of a trade-off in utility here, but I'm going to make it a list for now.
     # This does mean possibly having to remake every single json file if I change my mind, though.
     "custom_roles": [],  # Just role name.
+    "exclusive": "0"  # Whether or not the user can have more than one role. 0 is no, 1 is yes.
 }
 
 # Required perms for bot operation. Used for sending an oauth link.

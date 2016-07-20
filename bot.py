@@ -27,7 +27,6 @@ handler = logging.FileHandler(filename='goPC.log', encoding='utf-8', mode='w')
 log.addHandler(handler)
 
 help_message = messages.help_message
-
 owner_message = messages.owner_message
 
 server_info_message = '''
@@ -43,8 +42,6 @@ Users on Team Valor: {2} ({5:.2f}%)
 Users on Team Instinct: {3} ({6:.2f}%)
 '''
 
-# TODO: Move messages to external file
-
 client = discord.Client()
 
 bot = utils.Bot(client)
@@ -52,10 +49,10 @@ bot = utils.Bot(client)
 
 @client.event
 async def on_ready():
-    bot.initializing = True  # TODO: Create exceptions on message if bot.initializing == True
+    bot.initializing = True
     print("Initializing server data...")
+    bot.update_datafiles(client)  # Optional command that updates datafiles when there are changes to the json structure
     bot.init(client)  # Load the server datafiles, create objects. I frankly don't know how long this will take.
-    #bot.update_datafiles(client)
     print("Done.")
     bot.initializing = False
     print('Logged in as')
@@ -66,9 +63,11 @@ async def on_ready():
 
 @client.event
 async def on_server_join(server):
-    bot.servers[server.id].init_from_join(server)
     print("Joined {}".format(server.name))
+    bot.add_new_server(client, server)
     await client.send_message(server.owner, owner_message)
+
+# TODO: Add on_server_leave event
 
 
 @client.event
@@ -86,9 +85,9 @@ async def on_message(message):
     elif message.content.startswith("%team"):
 
         if message.content[6:] == "":
-            # User didn't put in anything.
+            # User didn't put in anything. Note that we might want to find a way to clarify the roles that do exist.
             await client.send_message(message.channel,
-                                       "Usage is `%team [team name]`, where team name is `Mystic`, `Valor`, or `Instinct` (case sensitive).")
+                                      "Usage is `%team [team name]`.")
             return
 
             # First things first, determine if it's a PM or not.
@@ -100,7 +99,7 @@ async def on_message(message):
 
             # Run checks to see if the message should go through or not
 
-            whitelist = server_obj.check_whitelist(message)
+            whitelist = await server_obj.check_whitelist(message)
             pm_prefs = int(server_obj.pm_config)
 
             if pm_prefs == 1:  # Server owner has required roles be set by PMs.
@@ -140,35 +139,36 @@ async def on_message(message):
                     await client.send_message(message.channel, "That number was too large, try %team again.")
                     return
                 else:
-                    server = servers_shared[int(server_selection) - 1]
+                    server = servers_shared[(int(server_selection) - 1)]
+                    # TODO: Fix possibility of IndexError
 
             member = discord.utils.get(server.members, id=message.author.id)
             server_obj = bot.servers[server.id]
-
-        # TODO: Add ability to possibly set roles to things that aren't V/M/I, but still use default roles
-        # if role in full_list and role in message.server.roles:
 
         # Now, actually handle and process the roles.
 
         entered_team = message.content[6:]
         role = discord.utils.get(server.roles, name=entered_team)
         allowed_roles = server_obj.roles  # allowed_roles used to be team_list
-
-        for r in member.roles:
-            if r.id in allowed_roles:
-                # If a role in the user's list of roles matches one of those we're checking
-                await client.send_message(message.channel,
-                                          "You already have a team role. If you want to switch, message a moderator.")
-                return
-        # TODO: Make this check based on whether or not the server has used default roles
+        if server_obj.exclusive == "0":
+            # Needs to be an exclusive if (not elif) because it has a chance at not returning anything
+            for r in member.roles:
+                if r.name in allowed_roles:
+                    # If a role in the user's list of roles matches one of those we're checking
+                    # or if the server has exclusive roles enabled
+                    await client.send_message(message.channel,
+                                              "You already have a team role. If you want to switch, message a moderator.")
+                    return
         if (server_obj.check_role(entered_team)) & (role is None):
             # Role does not exist on the server, but is in the team_list, so the server just isn't configured properly.
             await client.send_message(message.channel,
-                                      "The server does not appear to have the proper roles configured.\nAnticipated role names are `Mystic`, `Valor`, and `Instinct`.")
+                                      "The role you're trying to add existed at some point, but does not anymore, or has since been renamed.")
+            # TODO: Consider using IDs in self.roles for this very reason!
 
         elif (not server_obj.check_role(entered_team)) or (role is None):
-            # If the role wasn't found by discord.utils.get() or is a role that we don't want to add:
-            await client.send_message(message.channel, "Team doesn't exist. Teams that do are `Mystic`, `Valor`, and `Instinct` (case sensitive).\nBlue is Mystic, red is Valor, and yellow is Instinct.")
+            # If the role wasn't found by discord.utils.get() or is a role that we don't want to add, such as it not
+            # being in the roles list:
+            await client.send_message(message.channel, "Role isn't addable;" + server_obj.list_roles())
 
         elif role in member.roles:
             # If they already have the role
@@ -179,8 +179,10 @@ async def on_message(message):
                 await client.add_roles(member, role)
                 await client.send_message(message.channel, "Successfully added role `{0}`.".format(role.name))
             except discord.Forbidden:
-                await client.send_message(message.channel, "I don't have the `Manage Roles` permission., or the team roles are located above my own.\nTeam roles need to be located beneath my highest role for me to be able to assign roles.")
+                # Something's wrong with permissions or the role hierarchy.
+                await client.send_message(message.channel, "I don't have the `Manage Roles` permission, or the role you want me to assign is located above my own.\nRoles need to be located beneath my highest role in order for me to be able to assign them.")
             except discord.HTTPException:
+                # Some random HTTP Exception, usually unpredictable.
                 await client.send_message(message.channel, "Something went wrong, please try again.")
 
     # From here on out, don't let commands work in a PM.
@@ -214,45 +216,74 @@ async def on_message(message):
     elif message.content.startswith("%whitelist"):
         if utils.check_perms(message):
 
-            with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
-                temp_data = json.load(tmp)
-                temp_data["team_ch_wl"].append(message.channel.id)
-            with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
-                json.dump(temp_data, tmp)
-            await client.send_message(message.channel, "Channel successfully whitelisted.")
+            server_obj = bot.servers[message.server.id]
+
+            if message.channel.id in server_obj.channel_whitelist:
+                await client.send_message(message.channel, "This channel is already whitelisted.")
+            else:
+
+                with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
+                    temp_data = json.load(tmp)
+                    temp_data["team_ch_wl"].append(message.channel.id)
+                with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
+                    json.dump(temp_data, tmp)
+                await client.send_message(message.channel, "Channel successfully whitelisted.")
 
     elif message.content.startswith("%unwhitelist"):
         if utils.check_perms(message):
-
-            with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
-                temp_data = json.load(tmp)
-                temp_data["team_ch_wl"].remove(message.channel.id)
-            with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
-                json.dump(temp_data, tmp)
-                await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
+            server_obj = bot.servers[message.server.id]
+            if message.channel.id in server_obj.channel_whitelist:
+                await client.send_message(message.channel, "This channel is already whitelisted.")
+            else:
+                with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
+                    temp_data = json.load(tmp)
+                    temp_data["team_ch_wl"].remove(message.channel.id)
+                with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
+                    json.dump(temp_data, tmp)
+                    await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
 
     # Adjust server PM preferences
 
     elif message.content.startswith('%pm'):
-        flag = message.content.split()[1]
-        flag_prefs = {
-            "optional": "0",
-            "required": "1",
-        }
-
-        if message.author is not message.server.owner:
-            await client.send_message(message.channel, "This command is accessible by users with the `Manage Server` permission.")
+        if not utils.check_perms(message):
+            await client.send_message(message.channel,
+                                      "This command is accessible by users with the `Manage Server` permission.")
             return
+        else:
+            flag = message.content.split()[1]
+            flag_prefs = {
+                "optional": "0",
+                "required": "1",
+            }
+            if flag not in flag_prefs:
+                await client.send_message(message.channel, "`%pm [required/optional]` (server owner only): Optional is default, allowing role setting in server and PMs; required disables setting roles in the server; disabled disables setting roles in PMs.")
+                return
+            server_obj = bot.servers[message.server.id]
+            server_obj.pm_config = flag_prefs[flag]
+            server_obj.export_to_file()
+            await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag_prefs[flag]))
 
-        elif flag not in flag_prefs:
-            await client.send_message(message.channel, "`%pm [required/optional/disabled]` (server owner only): Optional is default, allowing role setting in server and PMs; required disables setting roles in the server; disabled disables setting roles in PMs.")
+    # TODO: Add server config command that handles %pm and %role_config
+
+    elif message.content.startswith("%role_config"):
+        if not utils.check_perms(message):
+            await client.send_message(message.channel,
+                                      "This command is accessible by users with the `Manage Server` permission.")
             return
-        with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
-            temp_data = json.load(tmp)
-            temp_data["pm"] = flag_prefs[flag]
-        with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
-            json.dump(temp_data, tmp)
-        await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag))
+        else:
+            flag = message.content.split()[1]
+            flag_prefs = {
+                "exclusive": "0",
+                "multiple": "1",
+            }
+            if flag not in flag_prefs:
+                await client.send_message(message.channel,
+                                          "%role_\config [exclusive/multiple]__*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.")
+                return
+            server_obj = bot.servers[message.server.id]
+            server_obj.pm_config = flag_prefs[flag]
+            server_obj.export_to_file()
+            await client.send_message(message.channel, "Server role preferences now set to {0}.".format(flag_prefs[flag]))
 
     # Small command listing information on the server itself.
 
@@ -316,10 +347,9 @@ async def on_message(message):
             else:
                 await client.send_message(message.channel, "Couldn't find that role.")
 
-    # Team stats in the server.
+    # Team stats in the server. Only for pokemon go server
 
     elif message.content.startswith('%stats'):
-
 
         # TODO: Make this work with the new server team list
 
@@ -340,7 +370,7 @@ async def on_message(message):
             role_stats["Mystic"],
             role_stats["Valor"],
             role_stats["Instinct"],
-            ((role_stats["Mystic"] / role_stats["total"]) * 100), # TODO: This throws a divide by zero error
+            ((role_stats["Mystic"] / role_stats["total"]) * 100),  # TODO: This throws a divide by zero error
             ((role_stats["Valor"] / role_stats["total"]) * 100),
             ((role_stats["Instinct"] / role_stats["total"]) * 100),
         )
@@ -353,7 +383,6 @@ async def on_message(message):
         if bot.sudo(message):
             await client.send_message(message.channel, eval(message.content[6:]))
 
-        # TODO: ADD SERVER SETTINGS CONFIG
         # TODO: Add ability for server owners to disable the requirement for default roles to exist.
 
     # Command to send a message to all servers running the bot. Should only be used for very crucial announcements.
