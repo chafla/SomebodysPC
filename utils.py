@@ -49,10 +49,19 @@ class Bot:
             self.servers[server.id] = server
 
     def add_new_server(self, client, server):
+        # Create a new server datafile and object on the fly
         server_obj = Server(client)
         server_obj.init_from_join(server)
         self.servers[server.id] = server_obj
         return
+
+    def remove_server(self, server):
+        # Remove the server datafile and object when leaving a server.
+        print("Removing datafile for {0.name}".format(server))
+        remove("server_data/{0.id}.json".format(server))
+        self.servers.pop(server.id)
+
+
 
     @staticmethod
     def update_datafiles(client):

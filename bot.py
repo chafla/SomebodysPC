@@ -67,7 +67,11 @@ async def on_server_join(server):
     bot.add_new_server(client, server)
     await client.send_message(server.owner, owner_message)
 
-# TODO: Add on_server_leave event
+
+@client.event
+async def on_server_remove(server):
+    print("Left {}".format(server.name))
+    bot.remove_server(server)
 
 
 @client.event
