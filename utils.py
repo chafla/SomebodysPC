@@ -62,7 +62,6 @@ class Bot:
         self.servers.pop(server.id)
 
 
-
     @staticmethod
     def update_datafiles(client):
         datafiles = listdir("server_data/")
@@ -82,9 +81,6 @@ class Server:
     Planned to be used in a future implementation, but currently non-functional.
 
     """
-
-    # TODO: Implement this so that this can be used for multiple servers
-    # TODO: Consider removing self.teams, or even self.default_roles
 
     base_roles = ["Instinct", "Valor", "Mystic"]
 
@@ -168,14 +164,11 @@ class Server:
         output = init_server_datafile
         output["server_id"] = server.id
         output["server_name"] = server.name
-        # TODO: This creates roles with the init datafile, but that doesn't have server ID.
         with open("server_data/{0}.json".format(self.id), "w", encoding="utf-8") as tmp:
             json.dump(output, tmp)
 
     def export_to_file(self):
         # Take the current server object as it is and push it to a .json file.
-
-        # TODO: This might result in problems if multiple people call it at once, but we need it to export.
 
         with open("server_data/{0}.json".format(self.id), "r", encoding="utf-8") as tmp:
             data = json.load(tmp)
@@ -191,7 +184,7 @@ class Server:
             json.dump(data, tmp)
 
     def add_custom_role(self, message, external_role=None):
-        # TODO: Occasionally omits the role from the role list
+        # TODO: Occasionally omits the role from the role list. Find out why.
         # initialize a custom role that can be added through %team. Server dependent.
         # If external_role is not None, then it's being called by something else, and we're just passing in the names we know.
         if external_role is not None:
@@ -300,7 +293,7 @@ class Server:
                     if role not in self.roles or role in self.base_roles:
                         role_list.remove(role)
 
-        base_message = "Roles that can be added with %team are "
+        base_message = "roles that can be added with %team are "
         if len(role_list) == 1:  # If there's only one role addable, make it mostly clean.
             base_message += "`{}`."
         else:

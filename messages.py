@@ -12,7 +12,7 @@ __%invite__: Generate a link that you can use to add goPC to your own server.\n
 __%stats__: List stats on the number of team members, including the percentage of the members on each team.\n
 __%wiki [page]__: Find a page on bulbapedia.\n
 __%add_assignable_role [role name]__: Allow a role to be added by goPC.
-__%role_\config [exclusive/multiple]__*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
+__%role_config [exclusive/multiple]__\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
 **Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
 '''
 

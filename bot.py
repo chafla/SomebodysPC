@@ -172,7 +172,7 @@ async def on_message(message):
         elif (not server_obj.check_role(entered_team)) or (role is None):
             # If the role wasn't found by discord.utils.get() or is a role that we don't want to add, such as it not
             # being in the roles list:
-            await client.send_message(message.channel, "Role isn't addable;" + server_obj.list_roles())
+            await client.send_message(message.channel, "Role isn't addable; " + server_obj.list_roles())
 
         elif role in member.roles:
             # If they already have the role
@@ -265,7 +265,7 @@ async def on_message(message):
             server_obj = bot.servers[message.server.id]
             server_obj.pm_config = flag_prefs[flag]
             server_obj.export_to_file()
-            await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag_prefs[flag]))
+            await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag))
 
     # TODO: Add server config command that handles %pm and %role_config
 
@@ -285,9 +285,9 @@ async def on_message(message):
                                           "%role_\config [exclusive/multiple]__*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.")
                 return
             server_obj = bot.servers[message.server.id]
-            server_obj.pm_config = flag_prefs[flag]
+            server_obj.exclusive = flag_prefs[flag]
             server_obj.export_to_file()
-            await client.send_message(message.channel, "Server role preferences now set to {0}.".format(flag_prefs[flag]))
+            await client.send_message(message.channel, "Server role preferences now set to {0}.".format(flag))
 
     # Small command listing information on the server itself.
 
@@ -335,7 +335,7 @@ async def on_message(message):
                 await client.create_role(message.server, name="Valor", color=discord.Color.red(),
                                          permissions=utils.team_perms, position=2)
                 await client.send_message(message.channel, "Blank roles successfully added.")
-                server_obj.init_default_roles()
+                server_obj.init_default_roles(message)
             except discord.Forbidden:
                 await client.send_message(message.channel, "I don't have the `Manage Roles` permission.")
                 return
