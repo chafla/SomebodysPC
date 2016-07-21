@@ -143,7 +143,11 @@ async def on_message(message):
                     await client.send_message(message.channel, "That number was too large, try %team again.")
                     return
                 else:
-                    server = servers_shared[(int(server_selection) - 1)]
+                    try:
+                        server = servers_shared[(int(server_selection) - 1)]
+                    except IndexError:
+                        await client.send_message(message.channel, "That number was too large, try %team again.")
+                        return
                     # TODO: Fix possibility of IndexError
 
             member = discord.utils.get(server.members, id=message.author.id)
