@@ -215,7 +215,6 @@ class Server:
         except IndexError:
             return False
 
-
     async def check_whitelist(self, message):
         """
         Check against the channel whitelist to see if the command should be allowed in this channel.
@@ -232,24 +231,7 @@ class Server:
             elif len(self.channel_whitelist) > 1:  # Grammar for grammar's sake, any more are ignored.
                 return "Please put team requests in <#{0}> or <#{1}>.".format(self.channel_whitelist[0], self.channel_whitelist[1])
 
-    def get_role_from_server(self, role_name, message, client):
         # TODO: Set this up to basically handle most of the code in the %rank command
-        """
-
-        :param role_name: String that contains a name of a role. Should be passed in by message.content[6:]
-        :param message: Message object.
-        :param client: Client object
-        :return:
-        """
-
-        # TODO: Set this up to grab the role object based on context
-        # Get role from server context
-        if message.channel.is_private:
-            member = message.author
-            server = message.server
-            return member, server
-        else:
-            pass
 
     def init_default_roles(self, message):
         # To be called when someone calls %create_roles, after the roles have been created successfully.
@@ -268,7 +250,7 @@ class Server:
         else:
             return True
 
-    def _exists_default_roles(self):
+    def exists_default_roles(self):
         # Check to see if default roles exist or not.
         for role in self.obj.roles:
             if role.name in self.base_roles:  # Just assume that if one role exists, then they all do.
@@ -299,7 +281,7 @@ class Server:
         '''
         role_list = self.roles
         # TODO: This hits an error when it's passed a non-existent server object for some reason?
-        if self._exists_default_roles():
+        if self.exists_default_roles():
             # If the pogo roles (as in the objects) actually exist on the server, then don't filter them out.
             # If they don't, then don't let it show them in the list.
             i = 0

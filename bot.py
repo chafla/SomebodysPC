@@ -356,13 +356,17 @@ async def on_message(message):
         if utils.check_perms(message):
             server_obj = bot.get_server(server=message.server)
             if server_obj.remove_custom_role(message):
-                await client.send_message(message.channel, "Role `{}` can now not be added with %team.".format(message.content[14:]))
+                await client.send_message(message.channel, "Role `{}` now can *not* be added with %team.".format(message.content[14:]))
             else:
                 await client.send_message(message.channel, "Role `{}` was already not assignable.".format(message.content[14:]))
 
     # Team stats in the server. Only for pokemon go servers
 
     elif message.content.startswith('%stats'):
+
+        server_obj = bot.servers[message.server.id]
+        if not server_obj.exists_default_roles():
+            await client.send_message(message.channel, "Pokemon GO roles don't exist on the server.")
 
         stats_message = '''
         Team stats for {0}
@@ -415,5 +419,6 @@ async def on_message(message):
                 await client.send_message(default_channel, message.content[9:])
                 sleep(0.5)  # To be nice on the api
 
+print("Logging in...")
 
 client.run(auth["token"])

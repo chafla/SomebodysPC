@@ -1,19 +1,19 @@
 # Command list, called with %help or %commands
 
 help_message = '''
-**%team [team name]**: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.\n
-**%whitelist**\*: Set a specific channel for team setting.\n
-**%unwhitelist**\*: Re-allow team setting in a channel.\n
-**%server_info**: Output a small list of information about the server.\n
-**%help or %commands**: Show this message again.\n
-**%pm [required/optional]**\*: Optional is default, and required disables setting roles in the server.\n
-**%invite**: Generate a link that you can use to add goPC to your own server.\n
-**%create_roles**\*: Create three empty team roles that goPC can use to assign.\n
-**%stats**: List stats on the number of team members, including the percentage of the members on each team. Note that this only works for Pokemon GO teams that use the default format.\n
-**%wiki [page]**: Find a page on bulbapedia.\n
+**%team [team name]**: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
+**%whitelist**\*: Set a specific channel for team setting.
+**%unwhitelist**\*: Re-allow team setting in a channel.
+**%server_info**: Output a small list of information about the server.
+**%help or %commands**: Show this message again.
+**%pm [required/optional]**\*: Optional is default, and required disables setting roles in the server.
+**%invite**: Generate a link that you can use to add goPC to your own server.
+**%create_roles**\*: Create three empty team roles that goPC can use to assign.
+**%stats**: List stats on the number of team members, including the percentage of the members on each team. Note that this only works for Pokemon GO teams that use the default format.
+**%wiki [page]**: Find a page on bulbapedia.
 **%enable_role [role name]**\*: Allow a role to be added by goPC.
 **%disable_role [role name]**\*: Disallow a role from being added by goPC, if it already can be.
-**%role_config [exclusive/multiple]**\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
+**%role_config [exclusive/multiple]**\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.\n
 **Commands with an asterisk (\*) can only be run by the server owner or a user with the `Manage Server` permission.**
 '''
 
