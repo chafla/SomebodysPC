@@ -273,27 +273,6 @@ class Server:
         # TODO: Consider removing this first check because the default role list already doesn't contain the pogo roles.
         # Compile roles into a fancy, readable format.
 
-        # First, check to see if the server only has the default roles added.
-        # If so, we can probably assume that it's either not been set up yet, or that it's only running pogo roles.
-        # As a result, we need to check the existing roles on the server first, to see if it is indeed just pogo roles.
-
-        # This is probably a hack that can be eliminated by just removing the base roles in the first place, but ehh.
-        '''
-        role_list = self.roles
-        # TODO: This hits an error when it's passed a non-existent server object for some reason?
-        if self.exists_default_roles():
-            # If the pogo roles (as in the objects) actually exist on the server, then don't filter them out.
-            # If they don't, then don't let it show them in the list.
-            i = 0
-            for role in self.obj.roles:
-                if role.name in self.base_roles:
-                    i += 1
-            if i < 3:  # They do exist on the server, or at least in limited capacity. Just ignore it
-                for role.name in self.obj.roles:
-                    if role not in self.roles or role in self.base_roles:
-                        role_list.remove(role)
-        '''
-
         role_list = self.roles
 
         base_message = "roles that can be added with %team are "
