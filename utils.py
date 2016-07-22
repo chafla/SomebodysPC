@@ -186,13 +186,13 @@ class Server:
             json.dump(data, tmp)
 
     def add_custom_role(self, message, external_role=None):
-        # TODO: Occasionally omits the role from the role list. Find out why.
+        # TODO: Occasionally omits the role from the role list. Probably from failing to write to the file for some reason.
         # initialize a custom role that can be added through %team. Server dependent.
-        # If external_role is not None, then it's being called by something else, and we're just passing in the names we know.
+        # If external_role is not None, then it's being called by something that's not the command, and we're just passing in the names we know.
         if external_role is not None:
             role_name = external_role
         else:
-            role_name = message.content[21:]
+            role_name = message.content[13:]
         role = discord.utils.get(message.server.roles, name=role_name)
         if role is None:
             return None
@@ -200,6 +200,21 @@ class Server:
             self.roles.append(role.name)
             self.export_to_file()
             return role
+
+    def remove_custom_role(self, message, external_role=None):
+        # Remove a role from the server object's role list.
+        # Returns True if it succeeds, or False if not.
+        if external_role is not None:
+            role_name = external_role
+        else:
+            role_name = message.content[14:]
+        try:
+            self.roles.remove(role_name)
+            self.export_to_file()
+            return True
+        except IndexError:
+            return False
+
 
     async def check_whitelist(self, message):
         """
@@ -218,7 +233,7 @@ class Server:
                 return "Please put team requests in <#{0}> or <#{1}>.".format(self.channel_whitelist[0], self.channel_whitelist[1])
 
     def get_role_from_server(self, role_name, message, client):
-        # TODO: FINISH THIS
+        # TODO: Set this up to basically handle most of the code in the %rank command
         """
 
         :param role_name: String that contains a name of a role. Should be passed in by message.content[6:]
@@ -254,6 +269,7 @@ class Server:
             return True
 
     def _exists_default_roles(self):
+        # Check to see if default roles exist or not.
         for role in self.obj.roles:
             if role.name in self.base_roles:  # Just assume that if one role exists, then they all do.
                 return True
@@ -338,6 +354,14 @@ def check_perms(message):
                 return True
         else:
             return False
+
+
+def get_percentage(amount, total):
+    if amount > 0:
+        percentage = (amount / total) * 100
+        return percentage
+    else:
+        return amount  # Avoiding div by zero
 
 init_server_datafile = {
     "server_name": "",  # Server name, ofc subject to change.

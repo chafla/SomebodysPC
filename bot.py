@@ -35,13 +35,6 @@ Server ID: **{0.id}**
 Member Count: **{1}**
 '''
 
-stats_message = '''
-Team stats for {0}
-Users on Team Mystic: {1} ({4:.2f}%)
-Users on Team Valor: {2} ({5:.2f}%)
-Users on Team Instinct: {3} ({6:.2f}%)
-'''
-
 client = discord.Client()
 
 bot = utils.Bot(client)
@@ -350,18 +343,33 @@ async def on_message(message):
 
     # Create a custom role for the server.
 
-    elif message.content.startswith("%add_assignable_role"):
+    elif message.content.startswith("%enable_role"):
         if utils.check_perms(message):
             server_obj = bot.get_server(server=message.server)
-            role_added = server_obj.add_custom_role(message)
-            if role_added is not None:
-                await client.send_message(message.channel, "Role `{}` can now be added with %team.".format(role_added.name))
+            role = server_obj.add_custom_role(message)
+            if role is not None:
+                await client.send_message(message.channel, "Role `{}` can now be added with %team.".format(role.name))
             else:
                 await client.send_message(message.channel, "Couldn't find that role.")
 
-    # Team stats in the server. Only for pokemon go server
+    elif message.content.startswith("%disable_role"):
+        if utils.check_perms(message):
+            server_obj = bot.get_server(server=message.server)
+            if server_obj.remove_custom_role(message):
+                await client.send_message(message.channel, "Role `{}` can now not be added with %team.".format(message.content[14:]))
+            else:
+                await client.send_message(message.channel, "Role `{}` was already not assignable.".format(message.content[14:]))
+
+    # Team stats in the server. Only for pokemon go servers
 
     elif message.content.startswith('%stats'):
+
+        stats_message = '''
+        Team stats for {0}
+        Users on Team Mystic: {1} ({4:.2f}%)
+        Users on Team Valor: {2} ({5:.2f}%)
+        Users on Team Instinct: {3} ({6:.2f}%)
+        '''
 
         # TODO: Make this work with the new server team list
 
@@ -369,22 +377,23 @@ async def on_message(message):
             "Mystic": 0,
             "Valor": 0,
             "Instinct": 0,
-            "total": 0
         }
+        total = 0
+
         for member in message.server.members:
             for role in member.roles:
                 if role.name in role_stats:
                     role_stats[role.name] += 1
-                    role_stats["total"] += 1
+                    total += 1
 
         msg = stats_message.format(
             message.server.name,
             role_stats["Mystic"],
             role_stats["Valor"],
             role_stats["Instinct"],
-            ((role_stats["Mystic"] / role_stats["total"]) * 100),  # TODO: This throws a divide by zero error
-            ((role_stats["Valor"] / role_stats["total"]) * 100),
-            ((role_stats["Instinct"] / role_stats["total"]) * 100),
+            utils.get_percentage(role_stats["Mystic"], total),  # TODO: This throws a divide by zero error
+            utils.get_percentage(role_stats["Valor"], total),
+            utils.get_percentage(role_stats["Instinct"], total)
         )
 
         await client.send_message(message.channel, msg)
@@ -395,17 +404,16 @@ async def on_message(message):
         if bot.sudo(message):
             await client.send_message(message.channel, eval(message.content[6:]))
 
-        # TODO: Add ability for server owners to disable the requirement for default roles to exist.
-
-    # Command to send a message to all servers running the bot. Should only be used for very crucial announcements.
+    # !!!!!!!!
+    # SENDS A MESSAGE TO EVERY SERVER CONNECTED TO THE BOT. NOT AN ECHO COMMAND.
     # NOT TO BE TAKEN LIGHTLY, AND I RECOMMEND YOU DON'T USE @everyone IN THE MESSAGE UNLESS YOU WANT HATE MAIL
 
-    elif message.content.startswith("%say"):
+    elif message.content.startswith("%announce"):
         if bot.sudo(message):
             for server_id, server in bot.servers:
                 default_channel = discord.utils.find(lambda c: c.is_default, server.channels)
-                await client.send_message(default_channel, message.content[5:])
-                sleep(0.5)
+                await client.send_message(default_channel, message.content[9:])
+                sleep(0.5)  # To be nice on the api
 
 
 client.run(auth["token"])
