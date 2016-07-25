@@ -23,33 +23,33 @@ to join Team Valor if it's enabled on the server. By default, the bot supports P
 
 * Ability to assign roles that aren't Pokemon GO roles, by adding them with `%enable_role` and then using `%team`.
 
-* Ability to let users assign either one role or multiple roles to themselves.
+* Ability to let users assign either one role or multiple roles to themselves, which can be changed with `%role_config`.
 
 # Current commands
 
 __%team [team name]__: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
 
-__%whitelist__\*: Set a specific channel for team setting.
+__%whitelist__\*: Make %team only work in the channel(s) this is called in. Can be called in multiple channels, and it will redirect users trying to call %team in other channels to the whitelisted channels.
 
-__%unwhitelist__\*: Re-allow team setting in a channel.
+__%unwhitelist__\*: Remove the channel this is called in from the whitelist. If multiple channels are whitelisted, all channels need to be removed from the whitelist before you can call %team in other channels.
 
-__%server_info__: Output a small list of information about the server.
+__%server_info__: Output a small list of information about the current server.
 
-__%help or %commands__: Show this message again.
+__%help or %commands__: Show a list of commands.
 
-__%pm [required/optional]__\*: Optional is default, and required disables setting roles in the server.
+__%pm [required/optional]__\*: Optional is default, and lets you call %team in the server as well as PMs, while required disables setting roles in the server.
 
 __%invite__: Generate a link that you can use to add goPC to your own server.
 
 __%create_roles__\*: Create three empty team roles that goPC can use to assign.
 
-__%stats__: List stats on the number of team members, including the percentage of the members on each team. Only works with the default Pokemon GO roles.
+__%stats__: List stats on the number of team members, including the percentage of the members on each team. Only works with the default Pokemon GO roles, if they exist on the server.
 
 __%wiki [page]__: Find a page on bulbapedia.
 
-__%enable_role [role name]__\*: Allow a role to be added by goPC.
+__%enable_role [role name]__\*: Allow a role to be added with %team.
 
-__%disable_role [role name]__\*: Disallow a role from being added by goPC, if it already can be.
+__%disable_role [role name]__\*: Disallow a role from being added with %team, if it already can be.
 
 __%role_config [exclusive/multiple]__\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
 
