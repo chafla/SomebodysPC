@@ -42,7 +42,7 @@ class Bot:
 
             # Pull the file ID from the name, so that we can be sure
             try:
-                server.init_from_file("server_data/" + file)  # Probably a neater way of doing this
+                server.init_from_file("server_data/" + file, client)  # Probably a neater way of doing this
             except KeyError:  # If there's a discrepancy, update the file otg
                 server.update_data_files(client, "server_data/" + file, file)
 
@@ -60,7 +60,6 @@ class Bot:
         print("Removing datafile for {0.name}".format(server))
         remove("server_data/{0.id}.json".format(server))
         self.servers.pop(server.id)
-
 
     @staticmethod
     def update_datafiles(client):
@@ -91,11 +90,11 @@ class Server:
         self.channel_whitelist = []
         self.pm_config = ""
         self.exclusive = ""
-        self.obj = discord.utils.get(client.servers, id=self.id)
+        self.obj = discord.utils.get(client.servers, id=self.id)  # TODO: This might be returning None
 
     # Init on launch, if file has been stored.
 
-    def init_from_file(self, datafile_path):
+    def init_from_file(self, datafile_path, client):
 
         # TODO: RE-INITIALIZE ALL EXISTING SERVER OBJECTS WITH THE NEW KEYS
 
@@ -110,6 +109,7 @@ class Server:
         self.name = data["server_name"]  # Server name was blank in old code, let's fix that
         self.roles = data["custom_roles"]
         self.exclusive = data["exclusive"]
+        self.obj = discord.utils.get(client.servers, id=self.id)  # Needs to be called here and not the object init for some reason
 
     def update_data_files(self, client, datafile_path, server_id):
         # Utility to update all existing datafiles in case I add new stuff to dicts.
@@ -285,6 +285,21 @@ class Server:
                 base_message += "and `{}`.".format(role_list[-1])
         return base_message
 
+    def generate_config_msg(self):
+        addable_roles = pp_list(self.roles)
+        chan_name_list = []
+        for chan in self.channel_whitelist:
+            chan_obj = discord.utils.get(self.obj.channels, id=chan)
+            if chan_obj is not None:  # The role doesn't exist in the list anymore...wait what the fuck
+                chan_name_list.append(chan_obj.name)
+            else:
+                continue
+        whitelist = pp_list(chan_name_list)
+        pm = "optional" if self.pm_config == "0" else "required"  # Python is so nice
+        role_cfg = "exclusive" if self.exclusive == "0" else "multiple"
+
+        return server_config_message.format(addable_roles, whitelist, pm, role_cfg)
+
     # TODO: Command to create a server when it already exists
     # TODO: Determine what I meant when I wrote the above TODO
 
@@ -317,6 +332,17 @@ def check_perms(message):
             return False
 
 
+def pp_list(ls):
+    # Take a list of strings and format it nicely
+    output = ""
+    for item in ls[:-1]:
+        output += "{}, ".format(item)
+    else:
+        output += ls[-1]
+
+    return output
+
+
 def get_percentage(amount, total):
     if amount > 0:
         percentage = (amount / total) * 100
@@ -328,7 +354,7 @@ init_server_datafile = {
     "server_name": "",  # Server name, ofc subject to change.
     "server_id": "",  # Server ID
     "team_ch_wl": [],  # channel ids where %team is allowed.
-    "pm": "0",
+    "pm": "0",  # Whether or not users can set roles in messages or not.
     # Here's where I run into a bit of a fix. Setting custom_roles to just a role name means that if the role is
     # re-named, it needs to be re-added. However, just using names means that it's made substantially easier to keep
     # track of roles. There seems to be a bit of a trade-off in utility here, but I'm going to make it a list for now.
@@ -338,6 +364,30 @@ init_server_datafile = {
 }
 
 # Required perms for bot operation. Used for sending an oauth link.
+
+server_config_message = '''
+Current server settings:
+```
+Addable roles: {0}
+
+Channels whitelisted: {1}
+
+PM settings: {2}
+
+Role settings: {3}
+```'''
+
+flags = {
+    "pm":  {
+        "optional": "0",
+        "required": "1",
+    },
+    "role": {
+        "exclusive": "0",
+        "multiple": "1"
+    }
+
+}
 
 required_perms = discord.Permissions.none()
 required_perms.read_messages = True

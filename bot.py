@@ -19,6 +19,8 @@ except IOError:
     auth = None  # Tired of pycharm pointing it out
     exit("auth.json not found in running directory.")
 
+# TODO: Better implement logging
+
 discord_logger = logging.getLogger('discord')
 discord_logger.setLevel(logging.CRITICAL)
 log = logging.getLogger()
@@ -297,6 +299,10 @@ async def on_message(message):
         member_count = sum(1 for _ in members)
         await client.send_message(message.channel, server_info_message.format(message.server, member_count))
 
+    elif message.content.startswith("%server_config"):
+        server_obj = bot.servers[message.server.id]
+        await client.send_message(message.channel, server_obj.generate_config_msg())
+
     # Generate an oauth link so people can add it to their own servers.
 
     elif message.content.startswith('%invite'):
@@ -368,13 +374,6 @@ async def on_message(message):
         if not server_obj.exists_default_roles():
             await client.send_message(message.channel, "Pokemon GO roles don't exist on the server.")
 
-        stats_message = '''
-        Team stats for {0}
-        Users on Team Mystic: {1} ({4:.2f}%)
-        Users on Team Valor: {2} ({5:.2f}%)
-        Users on Team Instinct: {3} ({6:.2f}%)
-        '''
-
         # TODO: Make this work with the new server team list
 
         role_stats = {
@@ -390,7 +389,7 @@ async def on_message(message):
                     role_stats[role.name] += 1
                     total += 1
 
-        msg = stats_message.format(
+        msg = messages.stats_message.format(
             message.server.name,
             role_stats["Mystic"],
             role_stats["Valor"],
