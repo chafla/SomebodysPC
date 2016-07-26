@@ -15,13 +15,13 @@ Users would, for example, type:
 `%team Valor`
 to join Team Valor if it's enabled on the server. By default, the bot supports Pokemon GO team roles, if their names are formatted like `Valor`, `Instinct`, and `Mystic` (case sensitive).
 
+* Ability to assign roles that aren't Pokemon GO roles, by adding them with `%enable_role` and then using `%team`.
+
 * Ability to whitelist certain channels for assigning %team.
 
 * Team requests can be sent through PMs, and have a selection menu if you share more than one server.
 
 * Ability to create a set of empty template roles (no permissions) that can then be configured manually, by using `%create_roles` with the `Manage Server` permission.
-
-* Ability to assign roles that aren't Pokemon GO roles, by adding them with `%enable_role` and then using `%team`.
 
 * Ability to let users assign either one role or multiple roles to themselves, which can be changed with `%role_config`.
 
