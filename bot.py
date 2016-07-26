@@ -94,7 +94,7 @@ async def on_message(message):
 
         if not message.channel.is_private:  # Not a PM.
 
-            server_obj = bot.servers[message.server.id]  # TODO: is it possible to just do bot.servers(id=message.server.id)?
+            server_obj = bot.servers[message.server.id]
 
             # Run checks to see if the message should go through or not
 
@@ -170,7 +170,7 @@ async def on_message(message):
             # Role does not exist on the server, but is in the team_list, so the server just isn't configured properly.
             await client.send_message(message.channel,
                                       "The role you're trying to add existed at some point, but does not anymore, or has since been renamed.")
-            # TODO: Consider using IDs in self.roles for this very reason!
+            # TODO: Consider using IDs in self.roles for this very reason
 
         elif (not server_obj.check_role(entered_team)) or (role is None):
             # If the role wasn't found by discord.utils.get() or is a role that we don't want to add, such as it not
@@ -269,8 +269,6 @@ async def on_message(message):
             server_obj.pm_config = flag_prefs[flag]
             server_obj.export_to_file()
             await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag))
-
-    # TODO: Add server config command that handles %pm and %role_config
 
     elif message.content.startswith("%role_config"):
         if not utils.check_perms(message):
@@ -374,8 +372,6 @@ async def on_message(message):
         if not server_obj.exists_default_roles():
             await client.send_message(message.channel, "This command requires Pokemon GO roles, which don't exist on this server.")
 
-        # TODO: Make this work with the new server team list
-
         role_stats = {
             "Mystic": 0,
             "Valor": 0,
@@ -394,7 +390,7 @@ async def on_message(message):
             role_stats["Mystic"],
             role_stats["Valor"],
             role_stats["Instinct"],
-            utils.get_percentage(role_stats["Mystic"], total),  # TODO: This throws a divide by zero error
+            utils.get_percentage(role_stats["Mystic"], total),
             utils.get_percentage(role_stats["Valor"], total),
             utils.get_percentage(role_stats["Instinct"], total)
         )

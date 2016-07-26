@@ -90,7 +90,7 @@ class Server:
         self.channel_whitelist = []
         self.pm_config = ""
         self.exclusive = ""
-        self.obj = discord.utils.get(client.servers, id=self.id)  # TODO: This might be returning None
+        self.obj = discord.utils.get(client.servers, id=self.id)  # This actually seems to end up as None
 
     # Init on launch, if file has been stored.
 
@@ -98,7 +98,6 @@ class Server:
 
         # TODO: RE-INITIALIZE ALL EXISTING SERVER OBJECTS WITH THE NEW KEYS
 
-        # TODO: Consider recreating files if they disappear - should really be only needed on manual delete when testing
         # Note: if we do it when the server object is initialized, then we run a risk of it not existing then.
 
         with open(datafile_path, "r", encoding="utf-8") as tmp:
@@ -109,7 +108,7 @@ class Server:
         self.name = data["server_name"]  # Server name was blank in old code, let's fix that
         self.roles = data["custom_roles"]
         self.exclusive = data["exclusive"]
-        self.obj = discord.utils.get(client.servers, id=self.id)  # Needs to be called here and not the object init for some reason
+        self.obj = discord.utils.get(client.servers, id=self.id)  # Needs to be called here and not __init__() for some reason
 
     def update_data_files(self, client, datafile_path, server_id):
         # Utility to update all existing datafiles in case I add new stuff to dicts.
@@ -145,7 +144,7 @@ class Server:
                 # We have to check to see if the server contains the default roles already, and if not, add them.
                 self.exclusive = "0"
                 for role in server.roles:
-                    if role.name in ["Valor", "Mystic", "Instinct"]:  # TODO: Consider the fact that this might have some impact on non-pokemon go servers. Possibly add check for roles that do actually exist on the server.
+                    if role.name in ["Valor", "Mystic", "Instinct"]:
                         self.roles.append(role.name)
 
                 print("Updated server datafiles for {0.name}".format(server))
@@ -270,7 +269,6 @@ class Server:
         return False
 
     def list_roles(self):
-        # TODO: Consider removing this first check because the default role list already doesn't contain the pogo roles.
         # Compile roles into a fancy, readable format.
 
         role_list = self.roles
@@ -286,22 +284,31 @@ class Server:
         return base_message
 
     def generate_config_msg(self):
-        addable_roles = pp_list(self.roles)
+        # Create a message used for %server_config.
+        if self.roles != []:
+            print(self.roles)
+            addable_roles = pp_list(self.roles)
+        else:
+            addable_roles = "None"
+
         chan_name_list = []
-        for chan in self.channel_whitelist:
-            chan_obj = discord.utils.get(self.obj.channels, id=chan)
-            if chan_obj is not None:  # The role doesn't exist in the list anymore...wait what the fuck
-                chan_name_list.append(chan_obj.name)
+        if self.channel_whitelist != []:
+            print(self.channel_whitelist)
+            for chan in self.channel_whitelist:
+                chan_obj = discord.utils.get(self.obj.channels, id=chan)
+                if chan_obj is not None:  # The role doesn't exist in the list anymore...wait what the fuck
+                    chan_name_list.append(chan_obj.name)
+                else:
+                    continue
             else:
-                continue
-        whitelist = pp_list(chan_name_list)
+                whitelist = pp_list(chan_name_list)
+        else:  # Should trigger if there are no channels in the whitelist.
+            whitelist = "None"
+
         pm = "optional" if self.pm_config == "0" else "required"  # Python is so nice
         role_cfg = "exclusive" if self.exclusive == "0" else "multiple"
 
         return server_config_message.format(addable_roles, whitelist, pm, role_cfg)
-
-    # TODO: Command to create a server when it already exists
-    # TODO: Determine what I meant when I wrote the above TODO
 
 # Function used to check the message received for an int.
 
@@ -339,7 +346,6 @@ def pp_list(ls):
         output += "{}, ".format(item)
     else:
         output += ls[-1]
-
     return output
 
 
