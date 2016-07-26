@@ -403,6 +403,17 @@ async def on_message(message):
         if bot.sudo(message):
             await client.send_message(message.channel, eval(message.content[6:]))
 
+    # Set bot status, or "game" it's currently playing.
+    # A blank message removes the status
+
+    elif message.content.startswith('%status'):
+        if bot.sudo(message):
+            if message.content[8:] != "":
+                game_name = message.content[8:]
+            else:
+                game_name = None
+            await client.change_status(game=discord.Game(name=game_name))
+
     # !!!!!!!!
     # SENDS A MESSAGE TO EVERY SERVER CONNECTED TO THE BOT. NOT AN ECHO COMMAND.
     # NOT TO BE TAKEN LIGHTLY, AND I RECOMMEND YOU DON'T USE @everyone IN THE MESSAGE UNLESS YOU WANT HATE MAIL
