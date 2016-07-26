@@ -20,13 +20,14 @@ except IOError:
     exit("auth.json not found in running directory.")
 
 # TODO: Better implement logging
-
+'''
 discord_logger = logging.getLogger('discord')
 discord_logger.setLevel(logging.CRITICAL)
 log = logging.getLogger()
 log.setLevel(logging.INFO)
 handler = logging.FileHandler(filename='goPC.log', encoding='utf-8', mode='w')
 log.addHandler(handler)
+'''
 
 help_message = messages.help_message
 owner_message = messages.owner_message
