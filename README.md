@@ -43,7 +43,7 @@ __%invite__: Generate a link that you can use to add goPC to your own server.
 
 __%create_roles__\*: Create three empty team roles that goPC can use to assign.
 
-__%stats__: List stats on the number of team members, including the percentage of the members on each team. Only works with the default Pokemon GO roles, if they exist on the server.
+__%stats__: List stats on the number of team members, including the percentage of the members on each team. Only works with the default Pokemon GO roles, if they exist on the server ("Mystic", "Instinct", and "Valor", case sensitive).
 
 __%wiki [page]__: Find a page on bulbapedia.
 

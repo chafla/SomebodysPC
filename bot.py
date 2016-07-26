@@ -102,7 +102,7 @@ async def on_message(message):
             pm_prefs = int(server_obj.pm_config)
 
             if pm_prefs == 1:  # Server owner has required roles be set by PMs.
-                await client.send_message(message.channel, "The server owner has required that roles be set by PM.")
+                await client.send_message(message.channel, "The server moderators have required that roles be set by PM.")
                 return
             elif whitelist is not None:  # The channel was not in the whitelist.
                 await client.send_message(message.channel, whitelist)
@@ -372,7 +372,7 @@ async def on_message(message):
 
         server_obj = bot.servers[message.server.id]
         if not server_obj.exists_default_roles():
-            await client.send_message(message.channel, "Pokemon GO roles don't exist on the server.")
+            await client.send_message(message.channel, "This command requires Pokemon GO roles, which don't exist on this server.")
 
         # TODO: Make this work with the new server team list
 
@@ -413,9 +413,9 @@ async def on_message(message):
 
     elif message.content.startswith("%announce"):
         if bot.sudo(message):
-            for server_id, server in bot.servers:
-                default_channel = discord.utils.find(lambda c: c.is_default, server.channels)
-                await client.send_message(default_channel, message.content[9:])
+            for server_id, server in bot.servers.items():
+                default_channel = discord.utils.get(server.obj.channels, is_default=True)
+                await client.send_message(default_channel, message.content[10:])
                 sleep(0.5)  # To be nice on the api
 
 print("Logging in...")
