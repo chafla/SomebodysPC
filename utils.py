@@ -3,8 +3,6 @@ import discord
 import sys
 from os import listdir, remove
 
-# TODO: Run this at start of program, after on ready but make sure there's a flag that doesn't let commands be handled while it's still initializing, possibly in Bot
-
 
 class Bot:
 
@@ -110,9 +108,11 @@ class Server:
         self.exclusive = data["exclusive"]
         self.obj = discord.utils.get(client.servers, id=self.id)  # Needs to be called here and not __init__() for some reason
 
-    def update_data_files(self, client, datafile_path, server_id):
+    def update_data_files(self, client, datafile_path, datafile_filename):
         # Utility to update all existing datafiles in case I add new stuff to dicts.
         # Mostly hardcoded, and requires that the client connect in the first place.
+        # To use, add the new keys to test_var.
+        server_id = datafile_filename[:-5]
         with open(datafile_path, "r", encoding="utf-8") as tmp:
             data = json.load(tmp)
         try:
@@ -121,13 +121,13 @@ class Server:
         except KeyError:
             with open(datafile_path, "r", encoding="utf-8") as tmp:
                 data = json.load(tmp)
-            server = discord.utils.get(client.servers, id=server_id[:-5])
+            server = discord.utils.get(client.servers, id=server_id)
 
             if server is None:
                 # This means that we don't belong to the server for some reason. Throws AttributeErrors.
                 # Just reformat the file so that we don't get errors.
                 self.name = ""
-                self.id = server_id[:-5]
+                self.id = server_id
                 self.roles = []
                 self.exclusive = "0"
                 self.export_to_file()
