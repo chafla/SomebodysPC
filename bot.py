@@ -19,15 +19,16 @@ except IOError:
     auth = None  # Tired of pycharm pointing it out
     exit("auth.json not found in running directory.")
 
-# TODO: Better implement logging
-'''
-discord_logger = logging.getLogger('discord')
-discord_logger.setLevel(logging.CRITICAL)
-log = logging.getLogger()
+# Bot specific logging
+
+log = logging.getLogger("bot")
 log.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='goPC.log', encoding='utf-8', mode='w')
+handler = logging.FileHandler(filename='gopc.log', encoding='utf-8', mode='a')  # Mode w replaces the file, consider it
+formatter = logging.Formatter("{asctime} - {levelname} - {message}", style="{")
+handler.setFormatter(formatter)
 log.addHandler(handler)
-'''
+
+log.info("~~~Bot Restarted~~~")
 
 help_message = messages.help_message
 owner_message = messages.owner_message
@@ -45,6 +46,7 @@ bot = utils.Bot(client)
 
 @client.event
 async def on_ready():
+    log.debug("Initializing")
     bot.initializing = True
     print("Initializing server data...")
     bot.update_datafiles(client)  # Optional command that updates datafiles when there are changes to the json structure
@@ -54,12 +56,14 @@ async def on_ready():
     print('Logged in as')
     print(client.user.name)
     print(client.user.id)
+    log.info("Initialized successfully")
     print('------')
 
 
 @client.event
 async def on_server_join(server):
     print("Joined {}".format(server.name))
+    log.info("Joined server {0.name} ({0.id})".format(server))
     bot.add_new_server(client, server)
     await client.send_message(server.owner, owner_message)
 
@@ -67,6 +71,7 @@ async def on_server_join(server):
 @client.event
 async def on_server_remove(server):
     print("Left {}".format(server.name))
+    log.info("Left server {0.name} ({0.id})".format(server))
     bot.remove_server(server)
 
 
@@ -80,7 +85,7 @@ async def on_message(message):
 
     elif bot.initializing:
         # If people call while the objects are being handled, which might just not happen
-        await client.send_message(message.channel, "Currently re-initializing, please try again later.")
+        await client.send_message(message.channel, "Currently initializing, please try again later.")
 
     elif message.content.startswith("%team"):
 
@@ -90,8 +95,8 @@ async def on_message(message):
                                       "Usage is `%team [team name]`.")
             return
 
-            # First things first, determine if it's a PM or not.
-            # We need to get the server object that the member wants a role in. If not PM, it's ez.
+        # First things first, determine if it's a PM or not.
+        # We need to get the server object that the member wants a role in. If not PM, it's ez.
 
         if not message.channel.is_private:  # Not a PM.
 
@@ -221,6 +226,8 @@ async def on_message(message):
 
     # Commands to (un)whitelist channels. Can only be run by someone with `Manage Server`.
 
+    #TODO: Determine why this isn't quite working
+
     elif message.content.startswith("%whitelist"):
         if utils.check_perms(message):
 
@@ -274,7 +281,7 @@ async def on_message(message):
     elif message.content.startswith("%role_config"):
         if not utils.check_perms(message):
             await client.send_message(message.channel,
-                                      "This command is accessible by users with the `Manage Server` permission.")
+                                      "This command is only accessible by users with the `Manage Server` permission.")
             return
         else:
             flag = message.content.split()[1]
@@ -284,7 +291,7 @@ async def on_message(message):
             }
             if flag not in flag_prefs:
                 await client.send_message(message.channel,
-                                          "%role_\config [exclusive/multiple]__*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.")
+                                          "%role_\config [exclusive/multiple]: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.")
                 return
             server_obj = bot.servers[message.server.id]
             server_obj.exclusive = flag_prefs[flag]
@@ -342,6 +349,7 @@ async def on_message(message):
                                          permissions=utils.team_perms, position=2)
                 await client.send_message(message.channel, "Blank roles successfully added.")
                 server_obj.init_default_roles(message)
+                log.info("Created default roles in {0.name}".format(message.server))
             except discord.Forbidden:
                 await client.send_message(message.channel, "I don't have the `Manage Roles` permission.")
                 return
@@ -402,7 +410,9 @@ async def on_message(message):
 
     elif message.content.startswith('%eval'):
         if bot.sudo(message):
-            await client.send_message(message.channel, eval(message.content[6:]))
+            eval_result = eval(message.content[6:])
+            log.info("Eval executed; Command: {}; Result: {}".format(message.content, eval_result))
+            await client.send_message(message.channel, eval_result)
 
     # Set bot status, or "game" it's currently playing.
     # A blank message removes the status
@@ -421,6 +431,7 @@ async def on_message(message):
 
     elif message.content.startswith("%announce"):
         if bot.sudo(message):
+            log.warning("%announce was used!")
             for server_id, server in bot.servers.items():
                 default_channel = discord.utils.get(server.obj.channels, is_default=True)
                 await client.send_message(default_channel, message.content[10:])

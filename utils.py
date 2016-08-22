@@ -1,7 +1,10 @@
 import json
 import discord
 import sys
+import logging
 from os import listdir, remove
+
+log = logging.getLogger("bot")
 
 
 class Bot:
@@ -11,6 +14,7 @@ class Bot:
             with open('config.json', 'r+') as json_config_info:
                 config = json.load(json_config_info)
         except IOError:
+            log.warning("config.json was not found, exiting.")
             sys.exit("config.json not found in running directory.")
 
         self.owner_id = config["owner_id"]
@@ -28,6 +32,7 @@ class Bot:
             return False
 
     def get_server(self, server=None, svr_id=None):
+        # Get server from server list.
         if server is not None:
             return self.servers[server.id]
         elif svr_id is not None:
@@ -94,8 +99,6 @@ class Server:
 
     def init_from_file(self, datafile_path, client):
 
-        # TODO: RE-INITIALIZE ALL EXISTING SERVER OBJECTS WITH THE NEW KEYS
-
         # Note: if we do it when the server object is initialized, then we run a risk of it not existing then.
 
         with open(datafile_path, "r", encoding="utf-8") as tmp:
@@ -131,6 +134,7 @@ class Server:
                 self.roles = []
                 self.exclusive = "0"
                 self.export_to_file()
+                log.info("Datafile {0}.json blanked due to not belonging to the server anymore.".format(server_id))
                 return
             else:
                 self.name = server.name
@@ -218,7 +222,7 @@ class Server:
         """
         Check against the channel whitelist to see if the command should be allowed in this channel.
         :param message: message object from context
-        :return: None if the command goes through, otherwise a message detailing why it didn't.
+        :return: None if the command goes through, otherwise a message detailing why it didn't, and where to direct the messages.
         """
         if self.channel_whitelist is None or message.channel.id in self.channel_whitelist:
             # Command does go through
@@ -285,18 +289,16 @@ class Server:
 
     def generate_config_msg(self):
         # Create a message used for %server_config.
-        if self.roles != []:
-            print(self.roles)
+        if self.roles != []:  # pycharm doesn't like this, but self.roles is not None doesn't work right
             addable_roles = pp_list(self.roles)
         else:
             addable_roles = "None"
 
         chan_name_list = []
         if self.channel_whitelist != []:
-            print(self.channel_whitelist)
             for chan in self.channel_whitelist:
                 chan_obj = discord.utils.get(self.obj.channels, id=chan)
-                if chan_obj is not None:  # The role doesn't exist in the list anymore...wait what the fuck
+                if chan_obj is not None:
                     chan_name_list.append(chan_obj.name)
                 else:
                     continue
@@ -382,6 +384,8 @@ PM settings: {2}
 
 Role settings: {3}
 ```'''
+
+# Flags used for some config commands
 
 flags = {
     "pm":  {
