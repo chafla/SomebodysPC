@@ -228,34 +228,23 @@ async def on_message(message):
 
     #TODO: Determine why this isn't quite working
 
-    elif message.content.startswith("%whitelist"):
+    elif message.content.startswith('%whitelist'):
         if utils.check_perms(message):
-
             server_obj = bot.servers[message.server.id]
-
             if message.channel.id in server_obj.channel_whitelist:
                 await client.send_message(message.channel, "This channel is already whitelisted.")
             else:
-
-                with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
-                    temp_data = json.load(tmp)
-                    temp_data["team_ch_wl"].append(message.channel.id)
-                with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
-                    json.dump(temp_data, tmp)
+                server_obj.add_to_whitelist(message)
                 await client.send_message(message.channel, "Channel successfully whitelisted.")
 
     elif message.content.startswith("%unwhitelist"):
         if utils.check_perms(message):
             server_obj = bot.servers[message.server.id]
-            if message.channel.id in server_obj.channel_whitelist:
-                with open("server_data/{0}.json".format(message.server.id), "r", encoding="utf-8") as tmp:
-                    temp_data = json.load(tmp)
-                    temp_data["team_ch_wl"].remove(message.channel.id)
-                with open("server_data/{0}.json".format(message.server.id), "w", encoding="utf-8") as tmp:
-                    json.dump(temp_data, tmp)
-                await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
+            if message.channel.id not in server_obj.channel_whitelist:
+                await client.send_message(message.channel, "This channel is already not whitelisted.")
             else:
-                await client.send_message(message.channel, "This channel is not whitelisted.")
+                server_obj.remove_from_whitelist(message)
+                await client.send_message(message.channel, "Channel successfully removed from the whitelist.")
 
     # Adjust server PM preferences
 
@@ -436,7 +425,5 @@ async def on_message(message):
                 default_channel = discord.utils.get(server.obj.channels, is_default=True)
                 await client.send_message(default_channel, message.content[10:])
                 sleep(0.5)  # To be nice on the api
-
-print("Logging in...")
 
 client.run(auth["token"])
