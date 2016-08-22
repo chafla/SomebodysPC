@@ -6,6 +6,8 @@ from os import listdir, remove
 
 log = logging.getLogger("bot")
 
+# TODO: Standardize how I do function documentation since it's all over the place
+
 
 class Bot:
 
@@ -217,6 +219,16 @@ class Server:
             return True
         except IndexError:
             return False
+
+    def add_to_whitelist(self, message):
+        """Add a channel to the server whitelist and write it out."""
+        self.channel_whitelist.append(message.channel.id)
+        self.export_to_file()
+
+    def remove_from_whitelist(self, message):
+        """Remove the channel from the whitelist and write it out."""
+        self.channel_whitelist.remove(message.channel.id)
+        self.export_to_file()
 
     async def check_whitelist(self, message):
         """
