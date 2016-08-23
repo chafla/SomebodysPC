@@ -8,6 +8,8 @@ log = logging.getLogger("bot")
 
 # TODO: Standardize how I do function documentation since it's all over the place
 
+# TODO: Add the new option to the server config
+
 
 class Bot:
 
@@ -68,22 +70,68 @@ class Bot:
 
     @staticmethod
     def update_datafiles(client):
+        # Loop through all server objects and update their datafiles to reflect new changes.
         datafiles = listdir("server_data/")
         for file in datafiles:
             server = Server(client)
-
             # Pull the file ID from the name, so that we can be sure
-
             server.update_data_files(client, "server_data/" + file, file)  # Probably a neater way of doing this
+
+    async def get_server_from_pm(self, message):
+        # TODO: Work this out
+        """
+        Handle the logic for determining how many servers are shared between the bot and the message author.
+        Implemented to be used in PMs so we can get the right server object to be able to assign roles through PMs.
+        :param message:
+        :return: Server object
+        """
+
+        # Get the servers shared between the author and the bot
+
+        servers_shared = []
+        for server in self.client.servers:
+            for member in server.members:
+                if member.id == message.author.id:
+                    servers_shared.append(member.server)
+
+        if len(servers_shared) == 0:  # This shouldn't normally appear
+            await self.client.send_message(message.channel, "Something is wrong. We don't appear to share any servers.")
+            return None
+
+        elif len(servers_shared) == 1:  # This makes it really easy, since there's only one server, just use that one
+            return servers_shared[0]
+
+        else:  # Things get complicated. From here, it's mostly just message management.
+            base_message = "Oops, looks like I share more than one server with you. Which server would you like to set your role in? Reply with the digit of the server.\n"
+            i = 1
+
+            for svr in servers_shared:
+                base_message += "{0}: {1.name}\n".format(i, svr)
+                i += 1
+
+            await self.client.send_message(message.channel, base_message)
+
+            # Wait for the message that the user sends back.
+            server_selection = await get_message(self.client, message, i, base_message)
+
+            # For some reason, the filter on wait_for_message isn't consistent, so we have to have more checks outside
+            if server_selection > i:
+                await self.client.send_message(message.channel, "That number was too large, try %team again.")
+                return None
+            else:
+                try:
+                    server = servers_shared[(int(server_selection) - 1)]
+                except IndexError:
+                    await self.client.send_message(message.channel, "That number was too large, try %team again.")
+                    return None
+                    # TODO: Fix possibility of IndexError
+
+            return server
 
 
 class Server:
     """
     Allowing servers to have different roles, and to be able to use different role names.
-    Should be called by way of a message, so that we can get all the useful data.
-
-    Planned to be used in a future implementation, but currently non-functional.
-
     """
 
     base_roles = ["Instinct", "Valor", "Mystic"]
@@ -95,6 +143,7 @@ class Server:
         self.channel_whitelist = []
         self.pm_config = ""
         self.exclusive = ""
+        self.user_ctrl = "0"
         self.obj = discord.utils.get(client.servers, id=self.id)  # This actually seems to end up as None
 
     # Init on launch, if file has been stored.
@@ -111,6 +160,7 @@ class Server:
         self.name = data["server_name"]  # Server name was blank in old code, let's fix that
         self.roles = data["custom_roles"]
         self.exclusive = data["exclusive"]
+        self.user_ctrl = data["user_ctrl"]
         self.obj = discord.utils.get(client.servers, id=self.id)  # Needs to be called here and not __init__() for some reason
 
     def update_data_files(self, client, datafile_path, datafile_filename):
@@ -122,7 +172,7 @@ class Server:
             data = json.load(tmp)
         try:
             # Add the new keys here
-            test_var = data["custom_roles"], data["server_id"], data["exclusive"]
+            test_var = data["custom_roles"], data["server_id"], data["exclusive"], data["user_ctrl"]
         except KeyError:
             with open(datafile_path, "r", encoding="utf-8") as tmp:
                 data = json.load(tmp)
@@ -135,6 +185,7 @@ class Server:
                 self.id = server_id
                 self.roles = []
                 self.exclusive = "0"
+                self.user_ctrl = "0"
                 self.export_to_file()
                 log.info("Datafile {0}.json blanked due to not belonging to the server anymore.".format(server_id))
                 return
@@ -149,6 +200,7 @@ class Server:
                 # These ones don't exist in the new json files, so we need to add them.
                 # We have to check to see if the server contains the default roles already, and if not, add them.
                 self.exclusive = "0"
+                self.user_ctrl = "0"
                 for role in server.roles:
                     if role.name in ["Valor", "Mystic", "Instinct"]:
                         self.roles.append(role.name)
@@ -168,6 +220,7 @@ class Server:
         self.pm_config = "0"
         self.exclusive = "0"
         self.obj = server
+        self.user_ctrl = "0"
         output = init_server_datafile
         output["server_id"] = server.id
         output["server_name"] = server.name
@@ -186,6 +239,7 @@ class Server:
         data["team_ch_wl"] = self.channel_whitelist
         data["pm"] = self.pm_config
         data["exclusive"] = self.exclusive
+        data["user_ctrl"] = self.user_ctrl
 
         with open("server_data/{0}.json".format(self.id), "w", encoding="utf-8") as tmp:
             json.dump(data, tmp)
@@ -321,8 +375,9 @@ class Server:
 
         pm = "optional" if self.pm_config == "0" else "required"  # Python is so nice
         role_cfg = "exclusive" if self.exclusive == "0" else "multiple"
+        user_ctrl = "disabled" if self.user_ctrl == "0" else "enabled"
 
-        return server_config_message.format(addable_roles, whitelist, pm, role_cfg)
+        return server_config_message.format(addable_roles, whitelist, pm, role_cfg, user_ctrl)
 
 # Function used to check the message received for an int.
 
@@ -380,7 +435,8 @@ init_server_datafile = {
     # track of roles. There seems to be a bit of a trade-off in utility here, but I'm going to make it a list for now.
     # This does mean possibly having to remake every single json file if I change my mind, though.
     "custom_roles": [],  # Just role name.
-    "exclusive": "0"  # Whether or not the user can have more than one role. 0 is no, 1 is yes.
+    "exclusive": "0",  # Whether or not the user can have more than one role. 0 is no, 1 is yes.
+    "user_ctrl": "0"  # Whether or not users can remove their roles that goPC can assign
 }
 
 # Required perms for bot operation. Used for sending an oauth link.
@@ -394,10 +450,13 @@ Channels whitelisted: {1}
 
 PM settings: {2}
 
-Role settings: {3}
+Role settings:
+Role exclusivity: {3}
+User control (whether or not %leaveteam is usable): {4}
 ```'''
 
-# Flags used for some config commands
+# Flags used for some config commands, but not actually used
+# Just maybe they will be at some point
 
 flags = {
     "pm":  {
@@ -407,6 +466,10 @@ flags = {
     "role": {
         "exclusive": "0",
         "multiple": "1"
+    },
+    "ctrl": {
+        "disabled": "0",
+        "enabled": "1"
     }
 
 }

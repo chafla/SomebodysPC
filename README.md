@@ -29,11 +29,13 @@ to join Team Valor if it's enabled on the server. By default, the bot supports P
 
 __%team [team name]__: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
 
+__%leaveteam [team name]__: Allows a user to remove a role if "User Control" is enabled in %server_config. Only removes roles goPC itself can add.
+
 __%whitelist__\*: Make %team only work in the channel(s) this is called in. Can be called in multiple channels, and it will redirect users trying to call %team in other channels to the whitelisted channels.
 
 __%unwhitelist__\*: Remove the channel this is called in from the whitelist. If multiple channels are whitelisted, all channels need to be removed from the whitelist before you can call %team in other channels.
 
-__%server_info__: Output a small list of information about the current server.
+__%server\_info__: Output a small list of information about the current server.
 
 __%help or %commands__: Show a list of commands.
 
@@ -47,13 +49,15 @@ __%stats__: List stats on the number of team members, including the percentage o
 
 __%wiki [page]__: Find a page on bulbapedia.
 
-__%enable_role [role name]__\*: Allow a role to be added with %team.
+__%enable\_role [role name]__\*: Allow a role to be added with %team.
 
-__%disable_role [role name]__\*: Disallow a role from being added with %team, if it already can be.
+__%disable\_role [role name]__\*: Disallow a role from being added with %team, if it already can be.
 
-__%role_config [exclusive/multiple]__\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
+__%role\_config [exclusive/multiple]__\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
 
-__%server_config__: Output the current server settings (whitelisted channels, role config setting, addable roles, and PM role-assignment settings).
+__%server\_config__: Output the current server settings (whitelisted channels, role config setting, addable roles, and PM role-assignment settings).
+
+__%leave\_config [enabled/disabled]__\*: Setting to disabled (default) prevents users from removing roles with %leaveteam. Enabled allows users to use %leaveteam to remove a %team-assignable role.
 
 **Commands with an asterisk can only be run by the server owner or a user with the `Manage Server` permission.**
 

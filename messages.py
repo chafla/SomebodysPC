@@ -4,6 +4,7 @@ help_message = '''
 **%team [team name]**: Assign yourself to a team. Typed like `%team Mystic` to set your role as Team Mystic.
 **%whitelist**\*: Make %team only work in the channel(s) this is called in.
 **%unwhitelist**\*: Remove the channel this is called in from the whitelist.
+**%leaveteam [team name]**: Allows a user to remove a role if "User Control" is enabled in the server config settings. Only removes roles goPC itself can add.
 **%server_info**: Output a small list of information about the server.
 **%help or %commands**: Show this message again.
 **%pm [required/optional]**\*: Optional is default, and lets you call %team in the server as well as PMs, while required disables setting roles in the server.
@@ -14,7 +15,9 @@ help_message = '''
 **%enable_role [role name]**\*: Allow a role to be added by goPC.
 **%disable_role [role name]**\*: Disallow a role from being added by goPC, if it already can be.
 **%role_config [exclusive/multiple]**\*: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.
+**%leave_config [enabled/disabled]**\*: Setting to disabled (default) prevents users from removing roles with %leaveteam. Enabled lets users use %leaveteam to remove a %team-assignable role.
 **%server_config**: Output the current server settings (whitelisted channels, role config, addable roles, and PM settings).\n
+
 **Commands with an asterisk (\*) can only be run by the server owner or a user with the `Manage Server` permission.**
 '''
 
@@ -22,7 +25,7 @@ help_message = '''
 
 owner_message = '''
 Hi, thanks for adding me to your server!
-In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting __%team__ followed by a designated role name will add the role to a user automatically. By default, I work with the role names `Valor`, `Mystic`, and `Instinct`, but of course only if the roles actually exist on the server. You (or someone with the Manage Server permission) can type **%enable_role [role name]** to enable adding that role with %team.
+In case you weren't aware, I'm a role managing bot. Assuming proper role setup, posting __%team__ followed by a designated role name will add the role to a user automatically. By default, I work with the role names `Valor`, `Mystic`, and `Instinct`, but of course only if the roles actually exist on the server. You (or someone with the Manage Server permission) can type **%enable_role [role name]** to enable adding a role with %team.
 
 Adding roles works within server channels, as well as in PMs. If you want to specify a channel that people can set roles in, type __%whitelist__ in said channel, and it'll direct role assignments to that channel.
 

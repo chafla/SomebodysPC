@@ -104,20 +104,21 @@ async def on_message(message):
 
             # Run checks to see if the message should go through or not
 
-            whitelist = await server_obj.check_whitelist(message)
+            whitelist_message = await server_obj.check_whitelist(message)
             pm_prefs = int(server_obj.pm_config)
 
             if pm_prefs == 1:  # Server owner has required roles be set by PMs.
                 await client.send_message(message.channel, "The server moderators have required that roles be set by PM.")
                 return
-            elif whitelist is not None:  # The channel was not in the whitelist.
-                await client.send_message(message.channel, whitelist)
+            elif whitelist_message is not None:  # The channel was not in the whitelist.
+                await client.send_message(message.channel, whitelist_message)
                 return
 
             member = message.author
             server = message.server
 
         else:  # Sent in a private message, so things might get tricky.
+            # TODO: Move most of this logic to the external file
             servers_shared = []
             for server in client.servers:
                 for member in server.members:
@@ -198,6 +199,56 @@ async def on_message(message):
                 # Some random HTTP Exception, usually unpredictable.
                 await client.send_message(message.channel, "Something went wrong, please try again.")
 
+    elif message.content.startswith("%leaveteam"):
+        if message.content[6:] == "":
+            # User didn't put in anything. Note that we might want to find a way to clarify the roles that do exist.
+            await client.send_message(message.channel,
+                                      "Usage is `%leaveteam [team name]`.")
+            return
+        if not message.channel.is_private:
+            server_obj = bot.servers[message.server.id]
+
+            # Run checks to see if the message should go through or not
+
+            whitelist_message = await server_obj.check_whitelist(message)
+            pm_prefs = int(server_obj.pm_config)
+
+            if pm_prefs == 1:  # Server owner has required roles be set by PMs.
+                await client.send_message(message.channel,
+                                          "The server moderators have required that roles be managed by PM.")
+                return
+            elif whitelist_message is not None:  # The channel was not in the whitelist.
+                await client.send_message(message.channel, whitelist_message)
+                return
+
+            member = message.author
+            server = message.server
+
+        else:
+            server = await bot.get_server_from_pm(message)
+            if server is None:
+                return
+            else:
+                member = server.get_member(message.author.id)
+                server_obj = bot.servers[server.id]
+
+        entered_team = message.content[11:]
+        role = discord.utils.get(server.roles, name=entered_team)
+
+        if server_obj.user_ctrl == "0":
+            await client.send_message(message.channel, "Removing roles with %leaveteam is disabled in this server.")
+            return
+        elif role is None:
+            await client.send_message(message.channel, "That role does not exist.")
+            return
+        elif (role.name not in server_obj.roles) & (role in member.roles):
+            await client.send_message(message.channel, "Cannot remove that role, you can only remove roles with %leaveteam that I can add with %team.")
+        elif role not in member.roles:
+            await client.send_message(message.channel, "You don't have that role.")
+        else:
+            await client.remove_roles(member, role)
+            await client.send_message(message.channel, "Role {0.name} removed successfully.".format(role))
+
     # From here on out, don't let commands work in a PM.
 
     elif message.channel.is_private:
@@ -225,8 +276,6 @@ async def on_message(message):
         await client.send_message(message.channel, help_message)
 
     # Commands to (un)whitelist channels. Can only be run by someone with `Manage Server`.
-
-    #TODO: Determine why this isn't quite working
 
     elif message.content.startswith('%whitelist'):
         if utils.check_perms(message):
@@ -286,6 +335,24 @@ async def on_message(message):
             server_obj.exclusive = flag_prefs[flag]
             server_obj.export_to_file()
             await client.send_message(message.channel, "Server role preferences now set to {0}.".format(flag))
+
+    elif message.content.startswith("%leave_config"):  # Consider changing this name
+        if not utils.check_perms(message):
+            await client.send_message(message.channel, "This command is only accessible by users with the `Manage Server` permission.")
+        else:
+            flag = message.content.split()[1]
+            flag_prefs = {
+                "disabled": "0",
+                "enabled": "1"
+            }
+            if flag not in flag_prefs:
+                await client.send_message(message.channel,
+                                          "%leave_config [enabled/disabled]: Setting to disabled (default) prevents users from removing roles with %leaveteam. Enabled lets users use %leaveteam to remove a %team-assignable role.")
+                return
+            server_obj = bot.servers[message.server.id]
+            server_obj.user_ctrl = flag_prefs[flag]
+            server_obj.export_to_file()
+            await client.send_message(message.channel, "`%leaveteam` is now {0}.".format(flag))
 
     # Small command listing information on the server itself.
 
