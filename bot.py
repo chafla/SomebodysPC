@@ -19,7 +19,7 @@ except IOError:
     auth = None  # Tired of pycharm pointing it out
     exit("auth.json not found in running directory.")
 
-# Bot specific logging
+# TODO: Better implement logging
 
 log = logging.getLogger("bot")
 log.setLevel(logging.INFO)
@@ -248,7 +248,9 @@ async def on_message(message):
 
     elif message.content.startswith('%whitelist'):
         if utils.check_perms(message):
+
             server_obj = bot.servers[message.server.id]
+
             if message.channel.id in server_obj.channel_whitelist:
                 await client.send_message(message.channel, "This channel is already whitelisted.")
             else:
