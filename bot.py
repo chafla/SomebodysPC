@@ -118,39 +118,8 @@ async def on_message(message):
             server = message.server
 
         else:  # Sent in a private message, so things might get tricky.
-            # TODO: Move most of this logic to the external file
-            servers_shared = []
-            for server in client.servers:
-                for member in server.members:
-                    if member.id == message.author.id:
-                        servers_shared.append(member.server)
-            if len(servers_shared) == 0:
-                await client.send_message(message.channel, "Something is wrong. We don't appear to share any servers.")
-                return
 
-            elif len(servers_shared) == 1:
-                server = servers_shared[0]
-            else:  # Time for issues
-                base_message = "Oops, looks like I share more than one server with you. Which server would you like to set your role in? Reply with the digit of the server.\n"
-                i = 1
-
-                for svr in servers_shared:
-                    base_message += "{0}: {1.name}\n".format(i, svr)
-                    i += 1
-
-                await client.send_message(message.channel, base_message)
-
-                server_selection = await utils.get_message(client, message, i, base_message)
-                if server_selection > i:
-                    await client.send_message(message.channel, "That number was too large, try %team again.")
-                    return
-                else:
-                    try:
-                        server = servers_shared[(int(server_selection) - 1)]
-                    except IndexError:
-                        await client.send_message(message.channel, "That number was too large, try %team again.")
-                        return
-                    # TODO: Fix possibility of IndexError
+            server = await bot.get_server_from_pm(message)
 
             member = discord.utils.get(server.members, id=message.author.id)
             try:
