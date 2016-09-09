@@ -455,8 +455,7 @@ Role exclusivity: {3}
 User control (whether or not %leaveteam is usable): {4}
 ```'''
 
-# Flags used for some config commands, but not actually used
-# Just maybe they will be at some point
+# Flags used for config commands
 
 flags = {
     "pm":  {

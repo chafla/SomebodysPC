@@ -275,15 +275,11 @@ async def on_message(message):
             return
         else:
             flag = message.content.split()[1]
-            flag_prefs = {
-                "optional": "0",
-                "required": "1",
-            }
-            if flag not in flag_prefs:
+            if flag not in utils.flags["pm"]:
                 await client.send_message(message.channel, "`%pm [required/optional]` (server owner only): Optional is default, allowing role setting in server and PMs; required disables setting roles in the server; disabled disables setting roles in PMs.")
                 return
             server_obj = bot.servers[message.server.id]
-            server_obj.pm_config = flag_prefs[flag]
+            server_obj.pm_config = utils.flags["pm"][flag]
             server_obj.export_to_file()
             await client.send_message(message.channel, "Server PM preferences now set to {0}.".format(flag))
 
@@ -294,16 +290,12 @@ async def on_message(message):
             return
         else:
             flag = message.content.split()[1]
-            flag_prefs = {
-                "exclusive": "0",
-                "multiple": "1",
-            }
-            if flag not in flag_prefs:
+            if flag not in utils.flags["role"]:
                 await client.send_message(message.channel,
                                           "%role_\config [exclusive/multiple]: Setting to exclusive (default) only allows one role to be set per user. Setting to multiple allows users to set as many roles as they want.")
                 return
             server_obj = bot.servers[message.server.id]
-            server_obj.exclusive = flag_prefs[flag]
+            server_obj.exclusive = utils.flags["role"][flag]
             server_obj.export_to_file()
             await client.send_message(message.channel, "Server role preferences now set to {0}.".format(flag))
 
@@ -312,16 +304,12 @@ async def on_message(message):
             await client.send_message(message.channel, "This command is only accessible by users with the `Manage Server` permission.")
         else:
             flag = message.content.split()[1]
-            flag_prefs = {
-                "disabled": "0",
-                "enabled": "1"
-            }
-            if flag not in flag_prefs:
+            if flag not in utils.flags["ctrl"]:
                 await client.send_message(message.channel,
                                           "%leave_config [enabled/disabled]: Setting to disabled (default) prevents users from removing roles with %leaveteam. Enabled lets users use %leaveteam to remove a %team-assignable role.")
                 return
             server_obj = bot.servers[message.server.id]
-            server_obj.user_ctrl = flag_prefs[flag]
+            server_obj.user_ctrl = utils.flags["ctrl"][flag]
             server_obj.export_to_file()
             await client.send_message(message.channel, "`%leaveteam` is now {0}.".format(flag))
 
