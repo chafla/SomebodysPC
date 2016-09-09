@@ -71,15 +71,6 @@ You can find this list by using %help or %oommands in chat.
 
 * Send Messages: Not technically *required*, but rather very highly recommended, as you won't get any feedback on whether commands went through or not.
 
-
-# Planned additions
-
-At the moment, I'm going to go for an early release with the sole functionality of adding team commands, but there are some features I'd like to implement in the future.
-
-* Aliases for team names.
-
-* Perhaps adding some other commands that are a bit more fun. __This isn't really the intention of the bot, though, and I probably won't be adding many fun commands.__ So don't pester me about it, please. :P
-
 # Running an instance
 
 If you're going to be running your own instance of goPC, take the `config_default.json` and `auth_default.json` files, and rename them to `auth.json` and `config.json`, and fill them in with the corresponding data.
